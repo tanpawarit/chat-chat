@@ -1,3 +1,40 @@
+
+```mermaid
+flowchart TD
+    subgraph Platform Layer
+        A1[LINE Platform]
+        A2[Facebook Messenger]
+        A3[Web Chat]
+    end
+
+    subgraph Adapter Layer
+        B1[LineAdapter]
+        B2[FacebookAdapter]
+        B3[WebAdapter]
+    end
+
+    subgraph Gateway Layer
+        C1[BotGateway]
+    end
+
+    %% Flow arrows
+    A1 -- Webhook --> B1
+    A2 -- Webhook --> B2
+    A3 -- HTTP/Websocket --> B3
+
+    B1 -- Normalize & Forward --> C1
+    B2 -- Normalize & Forward --> C1
+    B3 -- Normalize & Forward --> C1
+
+    C1 -- Response (Centralized Format) --> B1
+    C1 -- Response (Centralized Format) --> B2
+    C1 -- Response (Centralized Format) --> B3
+
+    B1 -- Send back to LINE --> A1
+    B2 -- Send back to Facebook --> A2
+    B3 -- Send back to Web --> A3
+```
+
 # Adapter and Platform Functions Documentation
 
 ## Overview
@@ -247,39 +284,4 @@ Concrete implementation of PlatformAdapter for LINE messaging platform integrati
 - Use constant-time comparison for security checks
 - Sanitize user input before processing
 - Implement proper authentication token management
-
-```mermaid
-flowchart TD
-    subgraph Platform Layer
-        A1[LINE Platform]
-        A2[Facebook Messenger]
-        A3[Web Chat]
-    end
-
-    subgraph Adapter Layer
-        B1[LineAdapter]
-        B2[FacebookAdapter]
-        B3[WebAdapter]
-    end
-
-    subgraph Gateway Layer
-        C1[BotGateway]
-    end
-
-    %% Flow arrows
-    A1 -- Webhook --> B1
-    A2 -- Webhook --> B2
-    A3 -- HTTP/Websocket --> B3
-
-    B1 -- Normalize & Forward --> C1
-    B2 -- Normalize & Forward --> C1
-    B3 -- Normalize & Forward --> C1
-
-    C1 -- Response (Centralized Format) --> B1
-    C1 -- Response (Centralized Format) --> B2
-    C1 -- Response (Centralized Format) --> B3
-
-    B1 -- Send back to LINE --> A1
-    B2 -- Send back to Facebook --> A2
-    B3 -- Send back to Web --> A3
-```
+ 
