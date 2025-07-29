@@ -69,20 +69,21 @@ class LineConfig(AdapterConfig):
 
     def __init__(self, **data):
         super().__init__(**data)
-        # Set LINE-specific capabilities
-        self.capabilities = AdapterCapabilities(
-            supports_text=True,
-            supports_images=True,
-            supports_video=True,
-            supports_audio=True,
-            supports_files=True,
-            supports_location=True,
-            supports_stickers=True,
-            supports_quick_replies=True,
-            supports_rich_menus=True,
-            max_text_length=5000,
-            max_file_size=10 * 1024 * 1024,  # 10MB
-        )
+        # Only set default LINE capabilities if not provided in config
+        if 'capabilities' not in data:
+            self.capabilities = AdapterCapabilities(
+                supports_text=True,
+                supports_images=True,
+                supports_video=True,
+                supports_audio=True,
+                supports_files=True,
+                supports_location=True,
+                supports_stickers=True,
+                supports_quick_replies=True,
+                supports_rich_menus=True,
+                max_text_length=5000,
+                max_file_size=10 * 1024 * 1024,  # 10MB
+            )
 
 
 class WebhookPayload(BaseModel):

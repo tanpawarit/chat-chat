@@ -65,6 +65,34 @@ class LineAdapter(PlatformAdapter):
             if not platform_user_id:
                 return None
 
+            # Check if message type is supported by platform capabilities
+            line_message_type = message.get("type")
+            
+            # Check capabilities before processing
+            capabilities = self.line_config.capabilities
+            
+            if line_message_type == "text" and not capabilities.supports_text:
+                print(f"Text messages are disabled in configuration")
+                return None
+            elif line_message_type == "image" and not capabilities.supports_images:
+                print(f"Image messages are disabled in configuration")
+                return None
+            elif line_message_type == "video" and not capabilities.supports_video:
+                print(f"Video messages are disabled in configuration")
+                return None
+            elif line_message_type == "audio" and not capabilities.supports_audio:
+                print(f"Audio messages are disabled in configuration")
+                return None
+            elif line_message_type == "file" and not capabilities.supports_files:
+                print(f"File messages are disabled in configuration")
+                return None
+            elif line_message_type == "location" and not capabilities.supports_location:
+                print(f"Location messages are disabled in configuration")
+                return None
+            elif line_message_type == "sticker" and not capabilities.supports_stickers:
+                print(f"Sticker messages are disabled in configuration")
+                return None
+
             # Generate normalized IDs
             user_id = self.generate_user_id(platform_user_id)
             message_id = self.generate_message_id(message.get("id", ""))
@@ -73,20 +101,20 @@ class LineAdapter(PlatformAdapter):
             message_type = MessageType.TEXT  # Default to text
             text_content = None
 
-            if message.get("type") == "text":
+            if line_message_type == "text":
                 message_type = MessageType.TEXT
                 text_content = message.get("text")
-            elif message.get("type") == "image":
+            elif line_message_type == "image":
                 message_type = MessageType.IMAGE
-            elif message.get("type") == "video":
+            elif line_message_type == "video":
                 message_type = MessageType.VIDEO
-            elif message.get("type") == "audio":
+            elif line_message_type == "audio":
                 message_type = MessageType.AUDIO
-            elif message.get("type") == "file":
+            elif line_message_type == "file":
                 message_type = MessageType.FILE
-            elif message.get("type") == "location":
+            elif line_message_type == "location":
                 message_type = MessageType.LOCATION
-            elif message.get("type") == "sticker":
+            elif line_message_type == "sticker":
                 message_type = MessageType.STICKER
                 text_content = (
                     f"[Sticker: {message.get('packageId')}/{message.get('stickerId')}]"

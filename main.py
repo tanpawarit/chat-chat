@@ -24,9 +24,11 @@ gateway = BotGateway()
 config = load_config()
 
 # LINE configuration
+line_platform_config = config["platforms"]["line"]
 line_config = LineConfig(
-    channel_access_token=config["platforms"]["line"]["channel_access_token"],
-    channel_secret=config["platforms"]["line"]["channel_secret"],
+    channel_access_token=line_platform_config["channel_access_token"],
+    channel_secret=line_platform_config["channel_secret"],
+    capabilities=line_platform_config.get("capabilities", {}),
 )
 
 line_adapter = LineAdapter(line_config)
