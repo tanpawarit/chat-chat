@@ -49,8 +49,22 @@ class BotGateway:
         print(f"Message Count: {user.message_count}")
         print("=" * 50)
 
-        # Simple echo response for now
-        if message.message_type == MessageType.TEXT and message.text:
+        # Check if this is a size/length limit warning message
+        if (
+            message.message_type == MessageType.TEXT
+            and message.text
+            and (
+                message.text.startswith("ข้อความของคุณยาวเกินไป")
+                or message.text.startswith("ไฟล์ของคุณใหญ่เกินไป")
+                or message.text.startswith("รูปภาพของคุณใหญ่เกินไป")
+                or message.text.startswith("วิดีโอของคุณใหญ่เกินไป")
+                or message.text.startswith("ไฟล์เสียงของคุณใหญ่เกินไป")
+            )
+        ):
+            # Return the warning message as-is (no echo)
+            response_text = message.text
+        # Simple echo response for normal messages
+        elif message.message_type == MessageType.TEXT and message.text:
             response_text = f"Echo: {message.text}"
         elif message.message_type == MessageType.STICKER:
             response_text = "I received a sticker! 😊"
@@ -71,7 +85,7 @@ class BotGateway:
             text=response_text,
             media=None,
             location=None,
-            quick_replies=None
+            quick_replies=None,
         )
 
         print("=> OUTGOING MESSAGE")

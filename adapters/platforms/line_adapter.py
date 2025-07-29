@@ -67,30 +67,30 @@ class LineAdapter(PlatformAdapter):
 
             # Check if message type is supported by platform capabilities
             line_message_type = message.get("type")
-            
+
             # Check capabilities before processing
             capabilities = self.line_config.capabilities
-            
+
             if line_message_type == "text" and not capabilities.supports_text:
-                print(f"Text messages are disabled in configuration")
+                print("Text messages are disabled in configuration")
                 return None
             elif line_message_type == "image" and not capabilities.supports_images:
-                print(f"Image messages are disabled in configuration")
+                print("Image messages are disabled in configuration")
                 return None
             elif line_message_type == "video" and not capabilities.supports_video:
-                print(f"Video messages are disabled in configuration")
+                print("Video messages are disabled in configuration")
                 return None
             elif line_message_type == "audio" and not capabilities.supports_audio:
-                print(f"Audio messages are disabled in configuration")
+                print("Audio messages are disabled in configuration")
                 return None
             elif line_message_type == "file" and not capabilities.supports_files:
-                print(f"File messages are disabled in configuration")
+                print("File messages are disabled in configuration")
                 return None
             elif line_message_type == "location" and not capabilities.supports_location:
-                print(f"Location messages are disabled in configuration")
+                print("Location messages are disabled in configuration")
                 return None
             elif line_message_type == "sticker" and not capabilities.supports_stickers:
-                print(f"Sticker messages are disabled in configuration")
+                print("Sticker messages are disabled in configuration")
                 return None
 
             # Generate normalized IDs
@@ -104,14 +104,126 @@ class LineAdapter(PlatformAdapter):
             if line_message_type == "text":
                 message_type = MessageType.TEXT
                 text_content = message.get("text")
+
+                # Check text length limit
+                if (
+                    text_content
+                    and capabilities.max_text_length is not None
+                    and len(text_content) > capabilities.max_text_length
+                ):
+                    # Return a special message indicating text is too long
+                    return IncomingMessage(
+                        message_id=message_id,
+                        user_id=user_id,
+                        platform=self.platform.value,
+                        message_type=MessageType.TEXT,
+                        timestamp=datetime.now(),
+                        text=f"ข้อความของคุณยาวเกินไป (ความยาว: {len(text_content)} อักขระ, จำกัดสูงสุด: {capabilities.max_text_length} อักขระ)",
+                        raw_data=webhook_data,
+                        media=None,
+                        location=None,
+                        quick_reply_payload=None,
+                    )
+
             elif line_message_type == "image":
                 message_type = MessageType.IMAGE
+
+                # Check file size limit for images
+                file_size = message.get("contentProvider", {}).get("contentLength", 0)
+                if (
+                    file_size
+                    and capabilities.max_file_size is not None
+                    and file_size > capabilities.max_file_size
+                ):
+                    file_size_mb = file_size / (1024 * 1024)
+                    max_size_mb = capabilities.max_file_size / (1024 * 1024)
+                    return IncomingMessage(
+                        message_id=message_id,
+                        user_id=user_id,
+                        platform=self.platform.value,
+                        message_type=MessageType.TEXT,
+                        timestamp=datetime.now(),
+                        text=f"รูปภาพของคุณใหญ่เกินไป (ขนาด: {file_size_mb:.1f}MB, จำกัดสูงสุด: {max_size_mb:.1f}MB)",
+                        raw_data=webhook_data,
+                        media=None,
+                        location=None,
+                        quick_reply_payload=None,
+                    )
+
             elif line_message_type == "video":
                 message_type = MessageType.VIDEO
+
+                # Check file size limit for videos
+                file_size = message.get("contentProvider", {}).get("contentLength", 0)
+                if (
+                    file_size
+                    and capabilities.max_file_size is not None
+                    and file_size > capabilities.max_file_size
+                ):
+                    file_size_mb = file_size / (1024 * 1024)
+                    max_size_mb = capabilities.max_file_size / (1024 * 1024)
+                    return IncomingMessage(
+                        message_id=message_id,
+                        user_id=user_id,
+                        platform=self.platform.value,
+                        message_type=MessageType.TEXT,
+                        timestamp=datetime.now(),
+                        text=f"วิดีโอของคุณใหญ่เกินไป (ขนาด: {file_size_mb:.1f}MB, จำกัดสูงสุด: {max_size_mb:.1f}MB)",
+                        raw_data=webhook_data,
+                        media=None,
+                        location=None,
+                        quick_reply_payload=None,
+                    )
+
             elif line_message_type == "audio":
                 message_type = MessageType.AUDIO
+
+                # Check file size limit for audio
+                file_size = message.get("contentProvider", {}).get("contentLength", 0)
+                if (
+                    file_size
+                    and capabilities.max_file_size is not None
+                    and file_size > capabilities.max_file_size
+                ):
+                    file_size_mb = file_size / (1024 * 1024)
+                    max_size_mb = capabilities.max_file_size / (1024 * 1024)
+                    return IncomingMessage(
+                        message_id=message_id,
+                        user_id=user_id,
+                        platform=self.platform.value,
+                        message_type=MessageType.TEXT,
+                        timestamp=datetime.now(),
+                        text=f"ไฟล์เสียงของคุณใหญ่เกินไป (ขนาด: {file_size_mb:.1f}MB, จำกัดสูงสุด: {max_size_mb:.1f}MB)",
+                        raw_data=webhook_data,
+                        media=None,
+                        location=None,
+                        quick_reply_payload=None,
+                    )
             elif line_message_type == "file":
                 message_type = MessageType.FILE
+
+                # Check file size limit
+                file_size = message.get("fileSize", 0)
+                if (
+                    capabilities.max_file_size is not None
+                    and file_size > capabilities.max_file_size
+                ):
+                    # Return a special message indicating file is too large
+                    file_size_mb = file_size / (1024 * 1024)
+                    max_size_mb = capabilities.max_file_size / (1024 * 1024)
+                    return IncomingMessage(
+                        message_id=message_id,
+                        user_id=user_id,
+                        platform=self.platform.value,
+                        message_type=MessageType.TEXT,
+                        timestamp=datetime.now(),
+                        text=f"ไฟล์ของคุณใหญ่เกินไป (ขนาด: {file_size_mb:.1f}MB, จำกัดสูงสุด: {max_size_mb:.1f}MB)",
+                        raw_data=webhook_data,
+                        media=None,
+                        location=None,
+                        quick_reply_payload=None,
+                    )
+
             elif line_message_type == "location":
                 message_type = MessageType.LOCATION
             elif line_message_type == "sticker":
