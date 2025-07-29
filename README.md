@@ -1,4 +1,4 @@
-llm-chatbot/
+<!-- llm-chatbot/
 ├── app.py                            # จุดเริ่มต้นของแอปฯ สำหรับรับข้อความและส่งเข้า workflow graph
 ├── config/
 │   ├── settings.py                   # เก็บ environment variables, API key, config ทั่วไป
@@ -37,7 +37,7 @@ llm-chatbot/
 └── tests/
     └── test_workflow_graph.py        # unit test สำหรับ workflow graph และแต่ละ node
 หมายเหตุ
-	•	โฟลเดอร์ workflow/nodes/: เพิ่ม node ใหม่ได้ง่าย เช่น profanity_check_node.py, db_lookup_node.py	•	config/workflow_default.yaml: ปรับ flow ได้โดยไม่ต้องแก้โค้ด (เพิ่ม/ลด node, branching)	•	session/: รองรับ context-aware, multi-turn, หรือ personalized bot	•	adapters/: รองรับหลาย platform ได้ในอนาคต	•	llm/: แยก logic LLM ออกจาก workflow, ทำให้เปลี่ยน model หรือ provider ได้ง่าย	•	analytics/: ต่อยอดทำ dashboard, monitor, หรือ A/B test ได้
+	•	โฟลเดอร์ workflow/nodes/: เพิ่ม node ใหม่ได้ง่าย เช่น profanity_check_node.py, db_lookup_node.py	•	config/workflow_default.yaml: ปรับ flow ได้โดยไม่ต้องแก้โค้ด (เพิ่ม/ลด node, branching)	•	session/: รองรับ context-aware, multi-turn, หรือ personalized bot	•	adapters/: รองรับหลาย platform ได้ในอนาคต	•	llm/: แยก logic LLM ออกจาก workflow, ทำให้เปลี่ยน model หรือ provider ได้ง่าย	•	analytics/: ต่อยอดทำ dashboard, monitor, หรือ A/B test ได้ -->
 ```mermaid
 flowchart TD
     subgraph Platform Layer
