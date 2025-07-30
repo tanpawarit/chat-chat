@@ -59,7 +59,7 @@ uv run ruff check . && uv run black . && uv run mypy .
 
 ## Architecture Overview
 
-This is a **multi-platform chatbot** with a clean adapter architecture that normalizes messages across different platforms (LINE, Facebook, Telegram, etc.).
+This is a **multi-store, multi-customer chatbot system** with a clean adapter architecture that normalizes messages across different platforms (LINE, Facebook, Telegram, etc.). The system supports multiple stores, where each store can have multiple customers, enabling scalable business-to-customer communication.
 
 ### Core Architecture Pattern
 
@@ -82,9 +82,13 @@ This is a **multi-platform chatbot** with a clean adapter architecture that norm
 - **OutgoingMessage**: Platform-agnostic representation of responses
 - **MessageType**: Enum for text, image, video, audio, sticker, location, etc.
 - **User Model**: Normalized user representation with profile data
+- **Store Model**: Store identification and configuration management
+- **Customer Model**: Customer profile and relationship management per store
 
 #### Gateway Processing
-- **BotGateway**: Central message processor (currently implements echo functionality)
+- **BotGateway**: Central message processor with multi-store routing capabilities
+- **Store Context**: Automatic store identification and customer association
+- **Message Routing**: Context-aware message processing per store-customer relationship
 - **Extensible**: Replace echo logic with LLM integration, workflow graphs, or business logic
 
 ### Configuration System
@@ -93,6 +97,8 @@ This is a **multi-platform chatbot** with a clean adapter architecture that norm
 - Platform-specific credentials and settings
 - Feature capabilities per platform (supports_text, supports_images, etc.)
 - Webhook paths and server configuration
+- Store configuration and routing rules
+- Multi-tenant isolation and security settings
 
 #### Environment Support
 - Development: Full reload, detailed logging
@@ -109,8 +115,9 @@ This is a **multi-platform chatbot** with a clean adapter architecture that norm
 
 #### Message Processing Flow
 ```python
-Webhook → Adapter.parse_incoming() → Gateway.handle_message() → 
-Adapter.format_outgoing() → Adapter.send_message()
+Webhook → Adapter.parse_incoming() → Store.identify() → Customer.associate() → 
+Gateway.handle_message() → Store.route_response() → Adapter.format_outgoing() → 
+Adapter.send_message()
 ```
 
 #### Testing Strategy
@@ -123,12 +130,17 @@ Adapter.format_outgoing() → Adapter.send_message()
 - ✅ LINE platform integration (complete webhook handling)
 - ✅ Message normalization and user profile management
 - ✅ FastAPI server with health checks and status endpoints
+- ✅ Multi-store architecture foundation
+- 🔄 Store identification and customer association (ready for implementation)
 - 🔄 Gateway currently implements echo responses (ready for enhancement)
 - 🔄 Session management and context persistence (infrastructure ready)
 
 ### Extension Points
+- Complete store identification and customer association logic
+- Implement multi-tenant data isolation and security
 - Replace `BotGateway.handle_message()` with LLM/AI logic
 - Add workflow graph processing (architecture outlined in README)
 - Implement session persistence with Redis (`session/store_redis.py`)
-- Add analytics and metrics collection (`analytics/` planned)
-- Enhance user profile management (`user/profile_service.py`)
+- Add analytics and metrics collection per store (`analytics/` planned)
+- Enhance user profile management with store context (`user/profile_service.py`)
+- Add store management dashboard and admin interface

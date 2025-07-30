@@ -1,0 +1,209 @@
+# ระบบความจำสำหรับ AI (Memory System Design)
+
+## ภาพรวม
+การออกแบบ Short-term Memory (SM) และ Long-term Memory (LM) ที่ "เป็นกลาง" (domain-agnostic) 
+- ต่อยอด/ขยาย/นำไปใช้ได้กับธุรกิจทุกประเภท
+- ไม่ผูกกับคำว่า order, complaint, booking ฯลฯ โดยตรง
+- ใช้แนวคิด "event", "attribute", "variable" ที่เป็นกลางและปรับใช้ได้ทั่วไป
+
+## 1. Short-term Memory (SM) — Redis
+
+### โครงสร้าง Key
+```
+sm:{tenant_id}:{user_id}
+```
+
+### ตัวอย่างค่า (JSON)
+```json
+{
+  "tenant_id": "tenant001",
+  "user_id": "userA",
+  "session_id": "uuid-1234",
+  "history": [
+    {"role": "user", "message": "ข้อความจากลูกค้า"},
+    {"role": "bot", "message": "ข้อความจากบอท"}
+  ],
+  "summary": "สรุปประเด็นสำคัญล่าสุด",
+  "state": "awaiting_input",
+  "last_intent": "GENERIC_INTENT",
+  "variables": {
+    "field1": "value1",
+    "field2": "value2"
+  },
+  "updated_at": "2025-07-30T14:00:00+07:00"
+}
+```
+
+### คำอธิบายฟิลด์
+- **tenant_id**: รหัสธุรกิจ/ร้านค้า/องค์กร
+- **user_id**: รหัสลูกค้า/ผู้ใช้
+- **history**: ประวัติข้อความสนทนา (user/bot) ล่าสุด
+- **summary**: สรุปบริบท (อาจสร้างโดย LLM)
+- **state, last_intent, variables**: ใช้ track flow, intent, variable ต่าง ๆ
+- **variables**: เก็บข้อมูลชั่วคราว เช่น ฟิลด์ฟอร์ม, รายละเอียดการทำธุรกรรม
+- **updated_at**: เวลาล่าสุดที่อัปเดต
+---
+
+## 2. Long-term Memory (LM) — Document DB/JSON
+
+### ชื่อ Collection
+```
+longterm_memory
+```
+
+### ตัวอย่าง Document
+```json
+{
+  "tenant_id": "tenant001",
+  "user_id": "userA",
+  "events": [
+    {
+      "event_type": "GENERIC_EVENT",
+      "payload": { "field1": "value1", "field2": "value2" },
+      "timestamp": "2025-07-28T12:32:00+07:00"
+    },
+    {
+      "event_type": "FEEDBACK",
+      "payload": { "detail": "บริการดีมาก" },
+      "timestamp": "2025-07-29T09:10:00+07:00"
+    }
+  ],
+  "attributes": {
+    "preferred_language": "th",
+    "segment": "VIP"
+  },
+  "history_summary": "สรุปเหตุการณ์สำคัญของ user นี้",
+  "updated_at": "2025-07-30T14:00:00+07:00"
+}
+```
+
+### คำอธิบายฟิลด์
+- **events**: เหตุการณ์สำคัญ (event_type เป็นกลาง เช่น GENERIC_EVENT, FEEDBACK, INQUIRY, ฯลฯ)
+- **payload**: เก็บรายละเอียดของ event นั้น (flexible)
+- **attributes**: ข้อมูลถาวร/โปรไฟล์/ความชอบ/segment
+- **history_summary**: สรุปบริบทหรือความสัมพันธ์ในอดีต
+- **updated_at**: เวลาล่าสุดที่อัปเดต
+---
+
+## 3. แนวคิดการใช้งานแบบเป็นกลาง (Neutral Usage Concept)
+
+### Intent/State/Event/Variable
+- ใช้ชื่อ generic เช่น:
+  - `REQUEST`
+  - `CONFIRM`
+  - `INQUIRY`
+  - `CANCEL`
+  - `FEEDBACK`
+  - `GENERIC_EVENT`
+- ให้ธุรกิจแต่ละประเภท map คำเหล่านี้กับ use case ตัวเองได้
+
+### Attributes/Variables/Payload
+- ขยายได้ตามฟีเจอร์ เช่น:
+  - ฟิลด์ฟอร์ม
+  - Preference
+  - ข้อมูลเฉพาะธุรกิจ
+---
+
+## 4. ตัวอย่างโค้ด Python (Pseudo-code)
+
+### Short-term Memory (Redis)
+
+```python
+import redis
+import json
+
+# ตั้งค่า Redis connection
+r = redis.Redis(host='localhost', port=6379, db=0)
+
+def get_sm(tenant_id, user_id):
+    """ดึงข้อมูลจาก Short-term Memory"""
+    key = f"sm:{tenant_id}:{user_id}"
+    data = r.get(key)
+    return json.loads(data) if data else None
+
+def set_sm(tenant_id, user_id, sm_dict, ttl=1800):
+    """บันทึกข้อมูลลง Short-term Memory"""
+    key = f"sm:{tenant_id}:{user_id}"
+    r.set(key, json.dumps(sm_dict), ex=ttl)
+```
+
+### Long-term Memory (MongoDB/Document DB)
+
+```python
+from pymongo import MongoClient
+from datetime import datetime
+
+# ตั้งค่า MongoDB connection
+db = MongoClient().mydb
+
+def get_lm(tenant_id, user_id):
+    """ดึงข้อมูลจาก Long-term Memory"""
+    return db.longterm_memory.find_one({
+        "tenant_id": tenant_id, 
+        "user_id": user_id
+    })
+
+def save_event(tenant_id, user_id, event):
+    """บันทึก Event ใหม่ลง Long-term Memory"""
+    db.longterm_memory.update_one(
+        {"tenant_id": tenant_id, "user_id": user_id},
+        {
+            "$push": {"events": event}, 
+            "$set": {"updated_at": datetime.now()}
+        },
+        upsert=True
+    )
+```
+---
+
+## 5. ข้อดี (Advantages)
+
+- **Generic & Flexible**
+  - ใช้กับธุรกิจใดก็ได้ เช่น Food, E-commerce, Insurance, Education ฯลฯ
+  - ออกแบบมาให้เป็นกลาง ไม่ยึดติดกับธุรกิจใดธุรกิจหนึ่ง
+
+- **Multi-tenant Support**
+  - รองรับหลายร้านค้า/องค์กรในระบบเดียวกัน
+  - แยกข้อมูลระหว่าง tenant อย่างชัดเจนด้วย tenant_id
+
+- **Extensible Schema**
+  - เพิ่ม field, event, attribute ใหม่ได้โดยไม่กระทบข้อมูลเดิม
+  - ยืดหยุ่นต่อการปรับเปลี่ยนตามความต้องการธุรกิจ
+
+- **Easy to Extend**
+  - ใช้งานร่วมกับระบบอื่น ๆ ได้ง่าย เช่น:
+    - Workflow Engine
+    - Intent Recognition
+    - Analytics & Reporting
+    - Personalized User Experience
+---
+
+## 6. ตัวอย่าง Important Event แบบ Generic
+
+### โครงสร้าง Event
+```json
+{
+  "event_type": "INQUIRY",
+  "payload": { 
+    "question": "สถานะคำสั่งซื้อ" 
+  },
+  "timestamp": "2025-07-30T09:00:00+07:00"
+}
+```
+
+### ตัวอย่างการใช้งาน
+- **ธุรกิจ E-commerce**
+  - `event_type`: "ORDER_STATUS_INQUIRY"
+  - `payload`: {"order_id": "ORD12345"}
+
+- **ธุรกิจบริการลูกค้า**
+  - `event_type`: "COMPLAINT"
+  - `payload": {"issue": "สินค้าชำรุด", "order_id": "ORD12345"}
+
+- **ธุรกิจการศึกษา**
+  - `event_type": "COURSE_ENQUIRY"
+  - `payload": {"course_id": "MATH101", "question": "มีรอบเรียนเย็นไหม"}
+
+### ข้อสังเกต
+- แต่ละธุรกิจสามารถกำหนด `event_type` และโครงสร้าง `payload` ให้สอดคล้องกับความต้องการของตัวเองได้
+- ควรมีเอกสารอธิบาย `event_type` และโครงสร้าง `payload` ที่รองรับในแต่ละธุรกิจ

@@ -11,6 +11,10 @@ dependencies = [
     "pydantic>=2.5.0",
     # Platform-specific SDKs
     "line-bot-sdk>=3.9.0",
+    # Memory system dependencies
+    "redis>=5.0.0",
+    "aiofiles>=23.2.0",
+    "pyyaml>=6.0.1",
 ]
 
 # Optional dependency groups
@@ -61,7 +65,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["adapters", "models", "bot_gateway"]
+packages = ["adapters", "models", "bot_gateway", "memory"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
@@ -70,8 +74,9 @@ addopts = [
     "--strict-config",
     "--disable-warnings",
     "--cov=adapters",
-    "--cov=models",
+    "--cov=models", 
     "--cov=bot_gateway",
+    "--cov=memory",
     "--cov-report=term-missing",
     "--cov-report=html",
 ]
@@ -83,7 +88,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["adapters", "models", "bot_gateway"]
+source = ["adapters", "models", "bot_gateway", "memory"]
 omit = [
     "*/tests/*",
     "*/test_*",
@@ -128,7 +133,7 @@ ignore = [
 "tests/*" = ["ARG", "S101"]  # Allow unused arguments and assert statements in tests
 
 [tool.ruff.isort]
-known-first-party = ["adapters", "models", "bot_gateway"]
+known-first-party = ["adapters", "models", "bot_gateway", "memory"]
 
 [tool.black]
 target-version = ['py312']
