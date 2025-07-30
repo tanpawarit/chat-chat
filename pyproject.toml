@@ -108,6 +108,8 @@ exclude_lines = [
 [tool.ruff]
 target-version = "py312"
 line-length = 88
+
+[tool.ruff.lint]
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
@@ -128,11 +130,11 @@ ignore = [
     "ARG001", # unused function argument
 ]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # Allow unused imports in __init__.py
 "tests/*" = ["ARG", "S101"]  # Allow unused arguments and assert statements in tests
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["adapters", "models", "bot_gateway", "memory"]
 
 [tool.black]

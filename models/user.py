@@ -7,7 +7,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from .platform import PlatformType
+from models.platform import PlatformType
 
 
 class UserProfile(BaseModel):
@@ -26,6 +26,10 @@ class User(BaseModel):
     user_id: str = Field(..., description="Unique user identifier")
     platform: PlatformType = Field(..., description="User's platform")
     platform_user_id: str = Field(..., description="Platform-specific user ID")
+
+    # Store context - NEW FIELDS
+    store_id: str | None = Field(None, description="Store this user belongs to")
+    customer_id: str | None = Field(None, description="Customer ID in the store")
 
     # Profile information
     profile: UserProfile | None = Field(None, description="User profile data")
@@ -58,13 +62,15 @@ class User(BaseModel):
                 "user_id": "user_line_U1234567890abcdef",
                 "platform": "line",
                 "platform_user_id": "U1234567890abcdef1234567890abcdef",
+                "store_id": "store_001",
+                "customer_id": "store_001_line_U1234567890abcdef",
                 "profile": {
                     "display_name": "John Doe",
                     "avatar_url": "https://profile.line-scdn.net/avatar.jpg",
-                    "language": "en",
+                    "language": "th",
                     "timezone": "Asia/Bangkok",
                 },
                 "message_count": 42,
-                "preferences": {"notifications": True, "language": "en"},
+                "preferences": {"notifications": True, "language": "th"},
             }
         }

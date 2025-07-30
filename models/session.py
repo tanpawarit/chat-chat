@@ -2,7 +2,7 @@
 Session and context-related Pydantic models.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -53,10 +53,10 @@ class Session(BaseModel):
         SessionState.ACTIVE, description="Current session state"
     )
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc), description="Session creation time"
+        default_factory=lambda: datetime.now(UTC), description="Session creation time"
     )
     updated_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc), description="Last session update"
+        default_factory=lambda: datetime.now(UTC), description="Last session update"
     )
     expires_at: datetime | None = Field(None, description="Session expiration time")
 
@@ -78,7 +78,7 @@ class Session(BaseModel):
     # Metadata
     total_messages: int = Field(0, description="Total messages in this session")
     last_activity: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc), description="Last activity timestamp"
+        default_factory=lambda: datetime.now(UTC), description="Last activity timestamp"
     )
 
     class Config:

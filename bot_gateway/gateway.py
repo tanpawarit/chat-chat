@@ -16,7 +16,7 @@ class BotGateway:
         pass
 
     async def handle_message(
-        self, message: IncomingMessage, user: User
+        self, message: IncomingMessage, user: User, store=None
     ) -> OutgoingMessage:
         """
         Handle incoming message and return response.
@@ -24,16 +24,19 @@ class BotGateway:
         Args:
             message: Normalized incoming message
             user: User who sent the message
+            store: Store context (optional)
 
         Returns:
             Normalized outgoing message response
         """
-        # Print message details for debugging
+        # Print message details for debugging (enhanced with store info)
         print("=" * 50)
         print("=> INCOMING MESSAGE")
         print("=" * 50)
         print(f"Platform: {message.platform}")
         print(f"User ID: {message.user_id}")
+        print(f"Store ID: {user.store_id if user.store_id else 'N/A'}")
+        print(f"Customer ID: {user.customer_id if user.customer_id else 'N/A'}")
         print(f"Message Type: {message.message_type.value}")
         print(f"Text: {message.text}")
         print(f"Timestamp: {message.timestamp}")
@@ -47,6 +50,8 @@ class BotGateway:
         )
         print(f"Platform User ID: {user.platform_user_id}")
         print(f"Message Count: {user.message_count}")
+        if store:
+            print(f"Store Name: {store.name}")
         print("=" * 50)
 
         # Check if this is a size/length limit warning message
@@ -63,21 +68,29 @@ class BotGateway:
         ):
             # Return the warning message as-is (no echo)
             response_text = message.text
-        # Simple echo response for normal messages
+        # Store-specific responses
         elif message.message_type == MessageType.TEXT and message.text:
-            response_text = f"Echo: {message.text}"
+            store_name = store.name if store else "Chat Bot"
+            response_text = (
+                f"สวัสดีครับ/ค่ะ จาก {store_name}! ท่านส่งข้อความว่า: {message.text}"
+            )
         elif message.message_type == MessageType.STICKER:
-            response_text = "I received a sticker! 😊"
+            store_name = store.name if store else "Chat Bot"
+            response_text = f"ได้รับสติกเกอร์จาก {store_name} แล้วครับ/ค่ะ! 😊"
         elif message.message_type == MessageType.IMAGE:
-            response_text = "I received an image! 📷"
+            store_name = store.name if store else "Chat Bot"
+            response_text = f"ได้รับรูปภาพจาก {store_name} แล้วครับ/ค่ะ! 📷"
         elif message.message_type == MessageType.VIDEO:
-            response_text = "I received a video! 🎥"
+            store_name = store.name if store else "Chat Bot"
+            response_text = f"ได้รับวิดีโอจาก {store_name} แล้วครับ/ค่ะ! 🎥"
         elif message.message_type == MessageType.AUDIO:
-            response_text = "I received an audio message! 🎵"
+            store_name = store.name if store else "Chat Bot"
+            response_text = f"ได้รับข้อความเสียงจาก {store_name} แล้วครับ/ค่ะ! 🎵"
         elif message.message_type == MessageType.LOCATION:
-            response_text = "I received a location! 📍"
+            store_name = store.name if store else "Chat Bot"
+            response_text = f"ได้รับตำแหน่งที่ตั้งจาก {store_name} แล้วครับ/ค่ะ! 📍"
         else:
-            response_text = "I received a message, but I'm not sure how to respond to this type yet."
+            response_text = "ได้รับข้อความแล้วครับ/ค่ะ แต่ยังไม่แน่ใจว่าจะตอบกลับอย่างไรดี"
 
         # Create response message
         response = OutgoingMessage(

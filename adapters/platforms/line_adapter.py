@@ -329,6 +329,8 @@ class LineAdapter(PlatformAdapter):
                 user_id=user_id,
                 platform=self.platform,
                 platform_user_id=platform_user_id,
+                store_id=None,  # Will be set by main.py when processing webhook
+                customer_id=None,  # Will be set by main.py when processing webhook
                 message_count=0,
                 profile=UserProfile(
                     display_name="LINE User",
