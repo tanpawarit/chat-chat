@@ -96,11 +96,14 @@ class BotGateway:
 
                     # Generate intelligent response using LLM
                     if self.llm_service:
+                        logger.info(f"🤖 Calling LLM Service for user message: {message.text}")
                         response_text = await self.llm_service.generate_response(
                             user_message=message.text,
                             memory_context=memory_context
                         )
+                        logger.info(f"✅ LLM Service returned response: {len(response_text)} chars")
                     else:
+                        logger.info("⚠️ No LLM Service available, using fallback response")
                         # Fallback response if no LLM service
                         response_text = f"สวัสดีครับ/ค่ะ จาก {store_name}! ได้รับข้อความของท่านแล้ว: {message.text}"
 

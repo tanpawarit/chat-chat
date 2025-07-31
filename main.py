@@ -2,8 +2,6 @@
 FastAPI application with multi-store webhook integration and memory system.
 """
 
-import pprint
-
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
@@ -192,13 +190,9 @@ async def platform_webhook(platform: str, store_id: str, request: Request):
 
         # Parse webhook data
         webhook_data = await request.json()
-        print(f"======= Webhook data for {store_id}: =======")
-        pprint.pprint(webhook_data, indent=2, width=80)
 
         # Parse incoming message
         incoming_message = await adapter.parse_incoming(webhook_data)
-        print(f"======= Incoming message for {store_id}: =======")
-        pprint.pprint(incoming_message)
 
         if not incoming_message:
             return JSONResponse(
@@ -225,8 +219,6 @@ async def platform_webhook(platform: str, store_id: str, request: Request):
             platform=PlatformType(platform),
             platform_user_id=platform_user_id,
         )
-        print(f"======= Customer for {store_id} =======")
-        pprint.pprint(customer)
 
         # Create User object with store context
         user = await adapter.get_user_profile(
@@ -237,8 +229,6 @@ async def platform_webhook(platform: str, store_id: str, request: Request):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Could not get user profile",
             )
-        print(f"======= User for {store_id} =======")
-        pprint.pprint(user)
 
         # Add reply token for LINE
         if platform == "line":
@@ -251,11 +241,9 @@ async def platform_webhook(platform: str, store_id: str, request: Request):
 
         # Process message through gateway with store context
         response_message = await gateway.handle_message(incoming_message, user, store)
-        print(f"Response message for {store_id}: {response_message}")
 
         # Format response for platform
         formatted_response = await adapter.format_outgoing(response_message, user)
-        print(f"Formatted response for {store_id}: {formatted_response}")
 
         # Send response back to platform
         success = await adapter.send_message(formatted_response, user)

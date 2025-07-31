@@ -90,6 +90,7 @@ class SessionManager:
                 has_memory_context=False,
                 memory_summary="",
                 tenant_id=None,
+                total_messages=0,
             )
 
     async def add_message(
@@ -97,7 +98,7 @@ class SessionManager:
         session: Session,
         message: str,
         role: str = "user",
-        tenant_id: str = None,
+        tenant_id: str | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> Session:
         """

@@ -58,6 +58,19 @@ class LLMService:
             # Build user prompt with context
             user_prompt = self._build_user_prompt(user_message, memory_context)
 
+            # Log complete prompts for debugging
+            print("=" * 80)
+            print("🤖 COMPLETE LLM PROMPT SENT TO API")
+            print("=" * 80)
+            print("📋 SYSTEM PROMPT:")
+            print("-" * 40)
+            print(system_prompt)
+            print("-" * 40)
+            print("👤 USER PROMPT:")
+            print("-" * 40)
+            print(user_prompt)
+            print("=" * 80)
+
             # Create messages
             messages = [
                 SystemMessage(content=system_prompt),
@@ -70,7 +83,6 @@ class LLMService:
             # Extract text content
             response_text = self._extract_text_content(response.content)
 
-            logger.info(f"Generated response: {len(response_text)} chars")
             return response_text.strip()
 
         except Exception as e:
@@ -120,7 +132,56 @@ class LLMService:
             ]:  # Last 3 important events
                 event_type = event["type"]
                 timestamp = event["timestamp"]
-                system_prompt += f"- {event_type}: {timestamp}\n"
+                payload = event.get("payload", {})
+                if payload and isinstance(payload, dict):
+                    # Extract meaningful content from payload
+                    content_parts = []
+
+                    # For REQUEST events
+                    if event_type == "REQUEST":
+                        if payload.get("original_message"):
+                            content_parts.append(
+                                f"ข้อความ: '{payload['original_message']}'"
+                            )
+                        if payload.get("request_type"):
+                            content_parts.append(f"ประเภท: {payload['request_type']}")
+                        if payload.get("specifics"):
+                            content_parts.append(f"รายละเอียด: {payload['specifics']}")
+                        if payload.get("urgency"):
+                            content_parts.append(f"ความเร่งด่วน: {payload['urgency']}")
+
+                    # For TRANSACTION events
+                    elif event_type == "TRANSACTION":
+                        if payload.get("original_message"):
+                            content_parts.append(
+                                f"ข้อความ: '{payload['original_message']}'"
+                            )
+                        if payload.get("transaction_type"):
+                            content_parts.append(
+                                f"ประเภท: {payload['transaction_type']}"
+                            )
+                        if payload.get("stage"):
+                            content_parts.append(f"ขั้นตอน: {payload['stage']}")
+                        if payload.get("amount_mentioned"):
+                            content_parts.append(
+                                f"จำนวน: {payload['amount_mentioned']}"
+                            )
+
+                    # Generic fallback for other fields
+                    else:
+                        if payload.get("original_message"):
+                            content_parts.append(
+                                f"ข้อความ: '{payload['original_message']}'"
+                            )
+                        if payload.get("description"):
+                            content_parts.append(payload["description"])
+
+                    if content_parts:
+                        system_prompt += f"- {event_type}: {', '.join(content_parts)} ({timestamp})\n"
+                    else:
+                        system_prompt += f"- {event_type}: {timestamp}\n"
+                else:
+                    system_prompt += f"- {event_type}: {timestamp}\n"
 
         return system_prompt
 

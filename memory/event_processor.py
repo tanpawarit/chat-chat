@@ -90,34 +90,34 @@ class EventProcessor:
         # System prompt for event classification
         self.system_prompt = """You are an expert conversation analyst. Your task is to analyze user messages and classify them for a memory system.
 
-Available Event Types:
-- INQUIRY: Questions, requests for information
-- FEEDBACK: Opinions, reviews, satisfaction/dissatisfaction
-- REQUEST: Specific asks, bookings, assistance needs
-- COMPLAINT: Problems, issues, dissatisfaction
-- TRANSACTION: Purchase, payment, order-related
-- SUPPORT: Help requests, guidance needs
-- INFORMATION: Sharing information, providing details
-- GENERIC_EVENT: General conversation, greetings, unclear intent
+            Available Event Types:
+            - INQUIRY: Questions, requests for information
+            - FEEDBACK: Opinions, reviews, satisfaction/dissatisfaction
+            - REQUEST: Specific asks, bookings, assistance needs
+            - COMPLAINT: Problems, issues, dissatisfaction
+            - TRANSACTION: Purchase, payment, order-related
+            - SUPPORT: Help requests, guidance needs
+            - INFORMATION: Sharing information, providing details
+            - GENERIC_EVENT: General conversation, greetings, unclear intent
 
-Importance Scoring Guidelines (0.0-1.0):
-- 0.9-1.0: Critical issues, transactions, urgent complaints
-- 0.7-0.8: Important requests, feedback, specific inquiries
-- 0.5-0.6: General support, information requests
-- 0.3-0.4: Casual inquiries, general information
-- 0.1-0.2: Greetings, small talk, unclear messages
+            Importance Scoring Guidelines (0.0-1.0):
+            - 0.9-1.0: Critical issues, transactions, urgent complaints
+            - 0.7-0.8: Important requests, feedback, specific inquiries
+            - 0.5-0.6: General support, information requests
+            - 0.3-0.4: Casual inquiries, general information
+            - 0.1-0.2: Greetings, small talk, unclear messages
 
-Payload Extraction:
-Extract relevant information based on event type:
-- For INQUIRY: question_type, topic, urgency
-- For COMPLAINT: issue_type, severity, category
-- For REQUEST: request_type, urgency, specifics
-- For TRANSACTION: transaction_type, stage, amount_mentioned
-- For FEEDBACK: sentiment, rating_implied, category
-- For SUPPORT: help_type, complexity, topic
-- For INFORMATION: info_type, category, relevance
+            Payload Extraction:
+            Extract relevant information based on event type:
+            - For INQUIRY: question_type, topic, urgency
+            - For COMPLAINT: issue_type, severity, category
+            - For REQUEST: request_type, urgency, specifics
+            - For TRANSACTION: transaction_type, stage, amount_mentioned
+            - For FEEDBACK: sentiment, rating_implied, category
+            - For SUPPORT: help_type, complexity, topic
+            - For INFORMATION: info_type, category, relevance
 
-Respond ONLY with valid JSON matching the EventClassification schema."""
+            Respond ONLY with valid JSON matching the EventClassification schema."""
 
     async def analyze_message(
         self, message: str, context: dict[str, Any] | None = None
@@ -136,13 +136,13 @@ Respond ONLY with valid JSON matching the EventClassification schema."""
             # Prepare the user prompt
             user_prompt = f"""Analyze this message:
 
-Message: "{message}"
+            Message: "{message}"
 
-Context: {json.dumps(context or {}, ensure_ascii=False, indent=2)}
+            Context: {json.dumps(context or {}, ensure_ascii=False, indent=2)}
 
-Classify the event type, calculate importance score (0.0-1.0), extract relevant payload data, and provide reasoning.
+            Classify the event type, calculate importance score (0.0-1.0), extract relevant payload data, and provide reasoning.
 
-Respond with JSON only."""
+            Respond with JSON only."""
 
             # Create messages
             messages = [
@@ -259,19 +259,19 @@ Respond with JSON only."""
 
             user_prompt = f"""Summarize the user's conversation history for memory system context.
 
-Current Summary:
-{current_summary}
+                    Current Summary:
+                    {current_summary}
 
-Recent Events:
-{json.dumps(events_data, ensure_ascii=False, indent=2)}
+                    Recent Events:
+                    {json.dumps(events_data, ensure_ascii=False, indent=2)}
 
-Create a concise summary (max 200 words) that captures:
-1. Key patterns in user behavior
-2. Important preferences or attributes
-3. Recurring themes or issues
-4. Current conversation context
+                    Create a concise summary (max 200 words) that captures:
+                    1. Key patterns in user behavior
+                    2. Important preferences or attributes
+                    3. Recurring themes or issues
+                    4. Current conversation context
 
-Focus on information that would be useful for future conversations."""
+                    Focus on information that would be useful for future conversations."""
 
             messages = [
                 SystemMessage(
