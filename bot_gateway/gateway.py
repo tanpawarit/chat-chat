@@ -98,9 +98,7 @@ class BotGateway:
                     if self.llm_service:
                         response_text = await self.llm_service.generate_response(
                             user_message=message.text,
-                            memory_context=memory_context,
-                            store_name=store_name,
-                            user_name=user_name
+                            memory_context=memory_context
                         )
                     else:
                         # Fallback response if no LLM service

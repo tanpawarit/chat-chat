@@ -40,8 +40,6 @@ class LLMService:
         self,
         user_message: str,
         memory_context: dict[str, Any],
-        store_name: str = "Chat Bot",
-        user_name: str = "คุณลูกค้า",
     ) -> str:
         """
         Generate a response using LLM with memory context.
@@ -49,20 +47,16 @@ class LLMService:
         Args:
             user_message: The user's message
             memory_context: Memory context from MemoryManager
-            store_name: Name of the store/business
-            user_name: User's display name
 
         Returns:
             Generated response text
         """
         try:
             # Build system prompt
-            system_prompt = self._build_system_prompt(store_name, memory_context)
+            system_prompt = self._build_system_prompt(memory_context)
 
             # Build user prompt with context
-            user_prompt = self._build_user_prompt(
-                user_message, memory_context, user_name
-            )
+            user_prompt = self._build_user_prompt(user_message, memory_context)
 
             # Create messages
             messages = [
@@ -76,9 +70,7 @@ class LLMService:
             # Extract text content
             response_text = self._extract_text_content(response.content)
 
-            logger.info(
-                f"Generated response for {store_name}: {len(response_text)} chars"
-            )
+            logger.info(f"Generated response: {len(response_text)} chars")
             return response_text.strip()
 
         except Exception as e:
@@ -86,13 +78,11 @@ class LLMService:
             # Fallback response
             return "ขออพ็ยครับ/ค่ะ เกิดข้อผิดพลาดเล็กน้อย กรุณาลองใหม่อีกครั้งนะคะ"
 
-    def _build_system_prompt(
-        self, store_name: str, memory_context: dict[str, Any]
-    ) -> str:
-        """Build system prompt with store context and memory."""
+    def _build_system_prompt(self, memory_context: dict[str, Any]) -> str:
+        """Build system prompt with memory context."""
 
         # Base personality
-        system_prompt = f"""คุณเป็นพนักงานบริการลูกค้าของ "{store_name}" ที่เป็นมิตรและช่วยเหลือดี
+        system_prompt = """คุณเป็นพนักงานบริการลูกค้าที่เป็นมิตรและช่วยเหลือดี
 
                         คุณควร:
                         - ตอบด้วยภาษาไทยที่สุภาพและเป็นมิตร
@@ -100,8 +90,6 @@ class LLMService:
                         - แสดงความสนใจและเอาใจใส่ลูกค้า
                         - ให้ข้อมูลที่ถูกต้องและเป็นประโยชน์
                         - หากไม่แน่ใจ ให้บอกว่าจะไปสอบถามเพิ่มเติม
-
-                        ชื่อร้าน: {store_name}
                         """
 
         # Add user preferences if available
@@ -137,7 +125,7 @@ class LLMService:
         return system_prompt
 
     def _build_user_prompt(
-        self, user_message: str, memory_context: dict[str, Any], user_name: str
+        self, user_message: str, memory_context: dict[str, Any]
     ) -> str:
         """Build user prompt with recent conversation context."""
 
@@ -162,7 +150,7 @@ class LLMService:
             prompt_parts.append(f"หัวข้อปัจจุบัน: {session_vars['current_topic']}")
 
         # Add the new user message
-        prompt_parts.append(f"\n{user_name} ส่งข้อความใหม่: {user_message}")
+        prompt_parts.append(f"\nลูกค้า ส่งข้อความใหม่: {user_message}")
         prompt_parts.append("\nกรุณาตอบกลับอย่างเหมาะสม:")
 
         return "\n".join(prompt_parts)
