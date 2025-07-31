@@ -81,6 +81,15 @@ class Session(BaseModel):
         default_factory=lambda: datetime.now(UTC), description="Last activity timestamp"
     )
 
+    # Memory integration fields
+    has_memory_context: bool = Field(
+        False, description="Whether session has loaded memory context"
+    )
+    memory_summary: str = Field("", description="Brief summary from memory system")
+    tenant_id: str | None = Field(
+        None, description="Tenant/store identifier for memory integration"
+    )
+
     class Config:
         """Pydantic configuration."""
 

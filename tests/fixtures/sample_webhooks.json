@@ -1,0 +1,78 @@
+{
+  "line_text_message": {
+    "events": [{
+      "type": "message",
+      "message": {
+        "type": "text",
+        "id": "msg123",
+        "text": "Hello from LINE"
+      },
+      "source": {
+        "type": "user", 
+        "userId": "user123"
+      },
+      "timestamp": 1640995200000,
+      "replyToken": "reply123"
+    }]
+  },
+  
+  "line_image_message": {
+    "events": [{
+      "type": "message",
+      "message": {
+        "type": "image",
+        "id": "img123",
+        "contentProvider": {
+          "type": "line"
+        }
+      },
+      "source": {
+        "type": "user",
+        "userId": "user123" 
+      },
+      "timestamp": 1640995200000,
+      "replyToken": "reply123"
+    }]
+  },
+  
+  "line_sticker_message": {
+    "events": [{
+      "type": "message",
+      "message": {
+        "type": "sticker",
+        "id": "sticker123",
+        "packageId": "1",
+        "stickerId": "1"
+      },
+      "source": {
+        "type": "user",
+        "userId": "user123"
+      },
+      "timestamp": 1640995200000,
+      "replyToken": "reply123"
+    }]
+  },
+  
+  "line_follow_event": {
+    "events": [{
+      "type": "follow",
+      "source": {
+        "type": "user",
+        "userId": "user123"
+      },
+      "timestamp": 1640995200000,
+      "replyToken": "reply123"
+    }]
+  },
+  
+  "line_unfollow_event": {
+    "events": [{
+      "type": "unfollow", 
+      "source": {
+        "type": "user",
+        "userId": "user123"
+      },
+      "timestamp": 1640995200000
+    }]
+  }
+}

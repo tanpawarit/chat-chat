@@ -8,6 +8,6 @@ from .memory_manager import MemoryManager
 
 __all__ = [
     "EventProcessor",
-    "LongTermMemoryStore", 
+    "LongTermMemoryStore",
     "MemoryManager",
 ]

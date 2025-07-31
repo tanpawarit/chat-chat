@@ -6,23 +6,9 @@
       "platform": "line",
       "platform_user_id": "U6e027183738a73e6a8583c0d4fe26b49",
       "profile": null,
-      "created_at": "2025-07-30T13:28:12.358556",
-      "last_seen": "2025-07-30T13:39:29.142604",
-      "message_count": 5,
-      "preferences": {},
-      "metadata": {}
-    }
-  },
-  "store_002": {
-    "line_U6e027183738a73e6a8583c0d4fe26b49": {
-      "customer_id": "store_002_line_U6e027183738a73e6a8583c0d4fe26b49",
-      "store_id": "store_002",
-      "platform": "line",
-      "platform_user_id": "U6e027183738a73e6a8583c0d4fe26b49",
-      "profile": null,
-      "created_at": "2025-07-30T10:46:15.431278",
-      "last_seen": "2025-07-30T10:46:15.433137",
-      "message_count": 1,
+      "created_at": "2025-07-31T12:08:47.944030",
+      "last_seen": "2025-07-31T12:18:09.797106",
+      "message_count": 3,
       "preferences": {},
       "metadata": {}
     }

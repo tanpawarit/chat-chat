@@ -15,6 +15,8 @@ dependencies = [
     "redis>=5.0.0",
     "aiofiles>=23.2.0",
     "pyyaml>=6.0.1",
+    "langchain-openai>=0.3.28",
+    "langchain-core>=0.3.72",
 ]
 
 # Optional dependency groups
@@ -183,6 +185,11 @@ ignore_missing_imports = true
 [tool.bandit]
 exclude_dirs = ["tests"]
 skips = ["B101"]  # Skip assert_used test
+
+[dependency-groups]
+dev = [
+    "mypy>=1.17.0",
+]
 
 [project.scripts]
 chat-bot = "main:main"

@@ -59,7 +59,7 @@ uv run ruff check . && uv run black . && uv run mypy .
 
 ## Architecture Overview
 
-This is a **multi-store, multi-customer chatbot system** with a clean adapter architecture that normalizes messages across different platforms (LINE, Facebook, Telegram, etc.). The system supports multiple stores, where each store can have multiple customers, enabling scalable business-to-customer communication.
+This is a **multi-store, multi-customer chatbot system** with a clean adapter architecture that normalizes messages across different platforms (LINE, Facebook, Telegram, etc.). The system supports multiple stores, where each store can have multiple customers, enabling scalable business-to-customer communication. 
 
 ### Core Architecture Pattern
 

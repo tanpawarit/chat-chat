@@ -1,0 +1,3 @@
+# Keep this directory in git
+# Long-term memory JSON files will be stored here
+# Structure: {tenant_id}/{user_id}.json

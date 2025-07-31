@@ -1,0 +1,61 @@
+{
+  "customers": [
+    {
+      "customer_id": "cust_001",
+      "user_id": "user123",
+      "store_id": "test_store_001",
+      "profile": {
+        "display_name": "Test Customer 1",
+        "language": "th",
+        "preferences": {
+          "notification": true,
+          "favorite_items": ["americano", "croissant"]
+        }
+      },
+      "history": {
+        "first_visit": "2024-01-01T10:00:00Z",
+        "last_visit": "2024-01-15T14:30:00Z", 
+        "visit_count": 5,
+        "total_orders": 12
+      }
+    },
+    {
+      "customer_id": "cust_002",
+      "user_id": "user456", 
+      "store_id": "test_store_001",
+      "profile": {
+        "display_name": "Test Customer 2",
+        "language": "en",
+        "preferences": {
+          "notification": false,
+          "favorite_items": ["latte", "muffin"]
+        }
+      },
+      "history": {
+        "first_visit": "2024-01-05T09:00:00Z",
+        "last_visit": "2024-01-14T16:00:00Z",
+        "visit_count": 3,
+        "total_orders": 7
+      }
+    },
+    {
+      "customer_id": "cust_003",
+      "user_id": "user789",
+      "store_id": "test_store_002", 
+      "profile": {
+        "display_name": "Test Customer 3",
+        "language": "th",
+        "preferences": {
+          "notification": true,
+          "favorite_items": ["cappuccino", "sandwich"]
+        }
+      },
+      "history": {
+        "first_visit": "2024-01-10T11:00:00Z",
+        "last_visit": "2024-01-16T13:00:00Z",
+        "visit_count": 8,
+        "total_orders": 15
+      }
+    }
+  ]
+}
