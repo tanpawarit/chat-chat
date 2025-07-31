@@ -70,12 +70,19 @@ class PlatformAdapter(ABC):
         pass
 
     @abstractmethod
-    async def get_user_profile(self, platform_user_id: str) -> User | None:
+    async def get_user_profile(
+        self,
+        platform_user_id: str,
+        store_id: str | None = None,
+        customer_id: str | None = None,
+    ) -> User | None:
         """
         Retrieve user profile from platform.
 
         Args:
             platform_user_id: Platform-specific user ID
+            store_id: Store identifier for context
+            customer_id: Customer identifier for context
 
         Returns:
             User object with profile data or None if not found

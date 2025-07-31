@@ -2,6 +2,8 @@
 FastAPI application with multi-store webhook integration.
 """
 
+import pprint
+
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
@@ -140,11 +142,13 @@ async def platform_webhook(platform: str, store_id: str, request: Request):
 
         # Parse webhook data
         webhook_data = await request.json()
-        print(f"Webhook data for {store_id}: {webhook_data}")
+        print(f"======= Webhook data for {store_id}: =======")
+        pprint.pprint(webhook_data, indent=2, width=80)
 
         # Parse incoming message
         incoming_message = await adapter.parse_incoming(webhook_data)
-        print(f"Incoming message for {store_id}: {incoming_message}")
+        print(f"======= Incoming message for {store_id}: =======")
+        pprint.pprint(incoming_message)
 
         if not incoming_message:
             return JSONResponse(
@@ -171,20 +175,20 @@ async def platform_webhook(platform: str, store_id: str, request: Request):
             platform=PlatformType(platform),
             platform_user_id=platform_user_id,
         )
-
-        print(f"Customer for {store_id}: {customer}")
+        print(f"======= Customer for {store_id} =======")
+        pprint.pprint(customer)
 
         # Create User object with store context
-        user = await adapter.get_user_profile(platform_user_id)
+        user = await adapter.get_user_profile(
+            platform_user_id, store_id=store_id, customer_id=customer.customer_id
+        )
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Could not get user profile",
             )
-
-        # Add store context to user
-        user.store_id = store_id
-        user.customer_id = customer.customer_id
+        print(f"======= User for {store_id} =======")
+        pprint.pprint(user)
 
         # Add reply token for LINE
         if platform == "line":

@@ -310,12 +310,19 @@ class LineAdapter(PlatformAdapter):
             print(f"Error sending LINE message: {e}")
             return False
 
-    async def get_user_profile(self, platform_user_id: str) -> User | None:
+    async def get_user_profile(
+        self,
+        platform_user_id: str,
+        store_id: str | None = None,
+        customer_id: str | None = None,
+    ) -> User | None:
         """
         Get LINE user profile.
 
         Args:
             platform_user_id: LINE user ID
+            store_id: Store identifier for context
+            customer_id: Customer identifier for context
 
         Returns:
             User object with profile data or None if failed
@@ -329,8 +336,8 @@ class LineAdapter(PlatformAdapter):
                 user_id=user_id,
                 platform=self.platform,
                 platform_user_id=platform_user_id,
-                store_id=None,  # Will be set by main.py when processing webhook
-                customer_id=None,  # Will be set by main.py when processing webhook
+                store_id=store_id,
+                customer_id=customer_id,
                 message_count=0,
                 profile=UserProfile(
                     display_name="LINE User",
