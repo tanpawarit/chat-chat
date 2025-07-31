@@ -196,13 +196,11 @@ class StoreService:
         # Validate platform configurations
         for platform_name, platform_config in store.platforms.items():
             if platform_config.enabled and platform_name == "line":
-                    if not platform_config.channel_secret:
-                        errors.append(
-                            f"LINE channel_secret missing for store {store_id}"
-                        )
-                    if not platform_config.channel_access_token:
-                        errors.append(
-                            f"LINE channel_access_token missing for store {store_id}"
-                        )
+                if not platform_config.channel_secret:
+                    errors.append(f"LINE channel_secret missing for store {store_id}")
+                if not platform_config.channel_access_token:
+                    errors.append(
+                        f"LINE channel_access_token missing for store {store_id}"
+                    )
 
         return {"valid": len(errors) == 0, "errors": errors, "warnings": warnings}

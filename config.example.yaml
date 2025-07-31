@@ -1,0 +1,103 @@
+# Multi-Store Chat Bot Configuration Example
+# Copy this file to config.yaml and customize for your setup
+
+openrouter:
+  api_key: "sk-or-v1-your-openrouter-api-key-here"
+
+# Store Configurations - Each store has its own platform configs
+stores:
+  store_001:
+    name: "ร้านกาแฟเก๋ไก๋"
+    active: true
+    platforms:
+      line:
+        enabled: true
+        channel_secret: "your-line-channel-secret"
+        channel_access_token: "your-line-channel-access-token"
+        capabilities:
+          supports_text: true
+          supports_images: true
+          supports_video: true
+          supports_audio: true
+          supports_files: true
+          supports_location: true
+          supports_stickers: true
+          supports_quick_replies: true
+          supports_rich_menus: true
+          max_text_length: 5000
+          max_file_size: 10485760  # 10MB
+      facebook:
+        enabled: false
+
+  store_002:
+    name: "ร้านขายของฝาก"
+    active: true
+    platforms:
+      line:
+        enabled: true
+        channel_secret: "your-line-channel-secret"
+        channel_access_token: "your-line-channel-access-token"
+        capabilities:
+          supports_text: true
+          supports_images: true
+          supports_video: true
+          supports_audio: true
+          supports_files: true
+          supports_location: true
+          supports_stickers: true
+          supports_quick_replies: true
+          supports_rich_menus: true
+          max_text_length: 5000
+          max_file_size: 10485760
+      facebook:
+        enabled: false
+    
+# Webhooks
+webhook:
+  line:
+    path: "/webhook/line"
+    
+# Server Configuration  
+server:
+  host: "0.0.0.0"
+  port: 8000
+  reload: true
+  log_level: "info"
+
+# Memory Configuration
+memory:
+  redis_url: "redis://localhost:6379/0"  # Use your Redis URL
+  
+  # Short-term Memory (SM) settings
+  sm_ttl: 1800                    # SM TTL in seconds (30 minutes)
+  
+  # Long-term Memory (LM) settings - JSON based
+  lm_base_path: "data/longterm"   # Base path for LM JSON files
+  max_events_per_user: 1000       # Max events to keep per user
+  event_retention_days: 365       # Event retention period in days
+  
+  # Event processing settings
+  importance_threshold: 0.5       # Minimum importance to save to LM (0.0-1.0)
+  summary_trigger_events: 50      # Number of events to trigger summary update
+
+# LLM Configuration - Pick your models
+llm:
+  # OpenRouter API settings
+  base_url: "https://openrouter.ai/api/v1"
+  
+  # Model configurations - choose what you want
+  models:
+    event_processing: "openai/gpt-4o-mini"    # For classifying user messages
+    response_generation: "openai/gpt-4o-mini" # For chatbot responses
+  
+  # Temperature settings - how creative the AI should be
+  temperatures:
+    event_processing: 0.1      # Low = consistent results
+    response_generation: 0.7   # Higher = more creative responses
+
+# Popular model options to choose from:
+# - "openai/gpt-4o-mini"     # Cheapest, good for most tasks
+# - "openai/gpt-4o"          # More expensive, better quality  
+# - "openai/gpt-3.5-turbo"   # Fast and cheap
+# - "anthropic/claude-3-sonnet" # Alternative to GPT
+# - "google/gemini-pro"      # Google's model

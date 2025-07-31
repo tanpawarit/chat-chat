@@ -17,7 +17,7 @@ class BotGateway:
     def __init__(self, memory_manager=None, llm_service=None):
         """
         Initialize the bot gateway.
-        
+
         Args:
             memory_manager: Optional MemoryManager instance for conversation persistence
             llm_service: Optional LLMService instance for intelligent responses
@@ -41,7 +41,9 @@ class BotGateway:
         """
         # Debug logging
         logger.info(f"Processing message from {user.store_id}:{user.customer_id}")
-        logger.debug(f"Message type: {message.message_type.value}, Text: {message.text}")
+        logger.debug(
+            f"Message type: {message.message_type.value}, Text: {message.text}"
+        )
 
         try:
             # Extract identifiers
@@ -66,9 +68,7 @@ class BotGateway:
                 try:
                     # Get or create session context
                     await self.memory_manager.get_or_create_session_context(
-                        tenant_id=tenant_id,
-                        user_id=user_id,
-                        session_id=session_id
+                        tenant_id=tenant_id, user_id=user_id, session_id=session_id
                     )
                     logger.info(f"Loaded session context for {tenant_id}:{user_id}")
 
@@ -82,8 +82,8 @@ class BotGateway:
                             "platform": message.platform,
                             "timestamp": message.timestamp.isoformat(),
                             "store_name": store_name,
-                            "user_name": user_name
-                        }
+                            "user_name": user_name,
+                        },
                     )
 
                     # Get memory context for LLM
@@ -91,19 +91,24 @@ class BotGateway:
                         tenant_id=tenant_id,
                         user_id=user_id,
                         include_summary=True,
-                        max_recent_messages=10
+                        max_recent_messages=10,
                     )
 
                     # Generate intelligent response using LLM
                     if self.llm_service:
-                        logger.info(f"🤖 Calling LLM Service for user message: {message.text}")
-                        response_text = await self.llm_service.generate_response(
-                            user_message=message.text,
-                            memory_context=memory_context
+                        logger.info(
+                            f"🤖 Calling LLM Service for user message: {message.text}"
                         )
-                        logger.info(f"✅ LLM Service returned response: {len(response_text)} chars")
+                        response_text = await self.llm_service.generate_response(
+                            user_message=message.text, memory_context=memory_context
+                        )
+                        logger.info(
+                            f"✅ LLM Service returned response: {len(response_text)} chars"
+                        )
                     else:
-                        logger.info("⚠️ No LLM Service available, using fallback response")
+                        logger.info(
+                            "⚠️ No LLM Service available, using fallback response"
+                        )
                         # Fallback response if no LLM service
                         response_text = f"สวัสดีครับ/ค่ะ จาก {store_name}! ได้รับข้อความของท่านแล้ว: {message.text}"
 
@@ -115,11 +120,13 @@ class BotGateway:
                         role="bot",
                         metadata={
                             "generated_by": "llm_service",
-                            "model_used": "openai/gpt-4o-mini"
-                        }
+                            "model_used": "openai/gpt-4o-mini",
+                        },
                     )
 
-                    logger.info(f"Generated response for {tenant_id}:{user_id}: {len(response_text)} chars")
+                    logger.info(
+                        f"Generated response for {tenant_id}:{user_id}: {len(response_text)} chars"
+                    )
 
                 except Exception as e:
                     logger.error(f"Memory system error: {e}")
@@ -128,16 +135,22 @@ class BotGateway:
 
             else:
                 # No memory system - simple response
-                response_text = f"สวัสดีครับ/ค่ะ จาก {store_name}! ท่านส่งข้อความว่า: {message.text}"
+                response_text = (
+                    f"สวัสดีครับ/ค่ะ จาก {store_name}! ท่านส่งข้อความว่า: {message.text}"
+                )
 
             return self._create_response(response_text)
 
         except Exception as e:
             logger.error(f"Error processing message: {e}")
             # Error fallback
-            return self._create_response("ขออภัยครับ/ค่ะ เกิดข้อผิดพลาดชั่วคราว กรุณาลองใหม่อีกครั้งนะคะ")
+            return self._create_response(
+                "ขออภัยครับ/ค่ะ เกิดข้อผิดพลาดชั่วคราว กรุณาลองใหม่อีกครั้งนะคะ"
+            )
 
-    async def _handle_non_text_message(self, message: IncomingMessage, store_name: str) -> str:
+    async def _handle_non_text_message(
+        self, message: IncomingMessage, store_name: str
+    ) -> str:
         """Handle non-text messages (stickers, images, etc.)."""
         message_type_responses = {
             MessageType.STICKER: f"ได้รับสติกเกอร์จาก {store_name} แล้วครับ/ค่ะ! 😊",
@@ -148,8 +161,7 @@ class BotGateway:
         }
 
         return message_type_responses.get(
-            message.message_type,
-            f"ได้รับข้อความจาก {store_name} แล้วครับ/ค่ะ"
+            message.message_type, f"ได้รับข้อความจาก {store_name} แล้วครับ/ค่ะ"
         )
 
     def _is_system_warning(self, text: str) -> bool:
@@ -159,7 +171,7 @@ class BotGateway:
             "ไฟล์ของคุณใหญ่เกินไป",
             "รูปภาพของคุณใหญ่เกินไป",
             "วิดีโอของคุณใหญ่เกินไป",
-            "ไฟล์เสียงของคุณใหญ่เกินไป"
+            "ไฟล์เสียงของคุณใหญ่เกินไป",
         ]
         return any(text.startswith(prefix) for prefix in warning_prefixes)
 

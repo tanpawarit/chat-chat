@@ -47,14 +47,10 @@ async def startup_event():
             f"✅ Memory Manager initialized with Redis: {config['memory']['redis_url']}"
         )
 
-        # Create LLM service
-        from llm.llm_service import LLMService
+        # Create LLM service using factory
+        from llm.factory import LLMServiceFactory
 
-        llm_service = LLMService(
-            api_key=config["openrouter"]["api_key"],
-            model=config.get("llm_model", "openai/gpt-4o-mini"),
-            base_url=config.get("openrouter_base_url", "https://openrouter.ai/api/v1"),
-        )
+        llm_service = LLMServiceFactory.create_from_config(config, task="response_generation")
         print("✅ LLM Service initialized with OpenRouter")
 
         # Initialize gateway with memory system and LLM

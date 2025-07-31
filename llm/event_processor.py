@@ -10,8 +10,10 @@ from typing import Any
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_openai import ChatOpenAI
-from pydantic import BaseModel, Field, SecretStr
+from pydantic import SecretStr
 
+from llm.config import LLMConfig
+from llm.models import EventClassification
 from models.memory import EventType, MemoryEvent
 
 logger = logging.getLogger(__name__)
@@ -48,27 +50,15 @@ def extract_text_content(content: str | list[str | dict[str, Any]]) -> str:
     return str(content)  # Fallback for any other type
 
 
-class EventClassification(BaseModel):
-    """Event classification result from LLM."""
-
-    event_type: EventType = Field(description="Classified event type")
-    importance_score: float = Field(
-        ge=0.0, le=1.0, description="Importance score (0.0-1.0)"
-    )
-    payload: dict[str, Any] = Field(
-        default_factory=dict, description="Extracted event data"
-    )
-    reasoning: str = Field(description="LLM reasoning for classification")
-
-
 class EventProcessor:
     """LLM-powered event processor for conversation analysis."""
 
     def __init__(
         self,
         api_key: str,
-        model: str = "openai/gpt-4o-mini",
-        base_url: str = "https://openrouter.ai/api/v1",
+        model: str = LLMConfig.DEFAULT_EVENT_MODEL,
+        base_url: str = LLMConfig.DEFAULT_BASE_URL,
+        temperature: float = LLMConfig.EVENT_PROCESSING_TEMPERATURE,
     ):
         """
         Initialize the event processor.
@@ -77,47 +67,19 @@ class EventProcessor:
             api_key: OpenRouter API key
             model: Model to use (default: gpt-4o-mini for cost efficiency)
             base_url: OpenRouter base URL
+            temperature: Temperature for LLM responses
         """
         self.llm = ChatOpenAI(
             api_key=SecretStr(api_key),
             model=model,
             base_url=base_url,
-            temperature=0.1,  # Low temperature for consistent classification
+            temperature=temperature,  # Temperature from config
         )
 
         self.parser = JsonOutputParser(pydantic_object=EventClassification)
 
         # System prompt for event classification
-        self.system_prompt = """You are an expert conversation analyst. Your task is to analyze user messages and classify them for a memory system.
-
-            Available Event Types:
-            - INQUIRY: Questions, requests for information
-            - FEEDBACK: Opinions, reviews, satisfaction/dissatisfaction
-            - REQUEST: Specific asks, bookings, assistance needs
-            - COMPLAINT: Problems, issues, dissatisfaction
-            - TRANSACTION: Purchase, payment, order-related
-            - SUPPORT: Help requests, guidance needs
-            - INFORMATION: Sharing information, providing details
-            - GENERIC_EVENT: General conversation, greetings, unclear intent
-
-            Importance Scoring Guidelines (0.0-1.0):
-            - 0.9-1.0: Critical issues, transactions, urgent complaints
-            - 0.7-0.8: Important requests, feedback, specific inquiries
-            - 0.5-0.6: General support, information requests
-            - 0.3-0.4: Casual inquiries, general information
-            - 0.1-0.2: Greetings, small talk, unclear messages
-
-            Payload Extraction:
-            Extract relevant information based on event type:
-            - For INQUIRY: question_type, topic, urgency
-            - For COMPLAINT: issue_type, severity, category
-            - For REQUEST: request_type, urgency, specifics
-            - For TRANSACTION: transaction_type, stage, amount_mentioned
-            - For FEEDBACK: sentiment, rating_implied, category
-            - For SUPPORT: help_type, complexity, topic
-            - For INFORMATION: info_type, category, relevance
-
-            Respond ONLY with valid JSON matching the EventClassification schema."""
+        self.system_prompt = LLMConfig.EVENT_CLASSIFICATION_SYSTEM_PROMPT
 
     async def analyze_message(
         self, message: str, context: dict[str, Any] | None = None
@@ -367,48 +329,3 @@ class EventProcessor:
 
         thai_chars = re.findall(r"[\u0E00-\u0E7F]", message)
         return "th" if len(thai_chars) > len(message) * 0.3 else "en"
-
-
-class EventProcessorFactory:
-    """Factory for creating EventProcessor instances with different configurations."""
-
-    @staticmethod
-    def create_from_config(config: dict[str, Any]) -> EventProcessor:
-        """
-        Create EventProcessor from configuration.
-
-        Args:
-            config: Configuration dictionary
-
-        Returns:
-            Configured EventProcessor instance
-        """
-        return EventProcessor(
-            api_key=config["openrouter"]["api_key"],
-            model=config.get("llm_model", "openai/gpt-4o-mini"),
-            base_url=config.get("openrouter_base_url", "https://openrouter.ai/api/v1"),
-        )
-
-    @staticmethod
-    def create_cheap(api_key: str) -> EventProcessor:
-        """Create processor optimized for cost (fastest, cheapest model)."""
-        return EventProcessor(
-            api_key=api_key,
-            model="openai/gpt-4o-mini",  # Most cost-effective
-        )
-
-    @staticmethod
-    def create_accurate(api_key: str) -> EventProcessor:
-        """Create processor optimized for accuracy (better model)."""
-        return EventProcessor(
-            api_key=api_key,
-            model="openai/gpt-4o",  # More accurate
-        )
-
-    @staticmethod
-    def create_fast(api_key: str) -> EventProcessor:
-        """Create processor optimized for speed (fastest response)."""
-        return EventProcessor(
-            api_key=api_key,
-            model="openai/gpt-3.5-turbo",  # Fastest
-        )

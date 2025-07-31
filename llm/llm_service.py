@@ -9,6 +9,8 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from pydantic import SecretStr
 
+from llm.config import LLMConfig
+
 logger = logging.getLogger(__name__)
 
 
@@ -18,8 +20,9 @@ class LLMService:
     def __init__(
         self,
         api_key: str,
-        model: str = "openai/gpt-4o-mini",
-        base_url: str = "https://openrouter.ai/api/v1",
+        model: str = LLMConfig.DEFAULT_RESPONSE_MODEL,
+        base_url: str = LLMConfig.DEFAULT_BASE_URL,
+        temperature: float = LLMConfig.RESPONSE_GENERATION_TEMPERATURE,
     ):
         """
         Initialize the LLM service.
@@ -28,12 +31,13 @@ class LLMService:
             api_key: OpenRouter API key
             model: Model to use for response generation
             base_url: OpenRouter base URL
+            temperature: Temperature for LLM responses
         """
         self.llm = ChatOpenAI(
             api_key=SecretStr(api_key),
             model=model,
             base_url=base_url,
-            temperature=0.7,  # More creative for conversation
+            temperature=temperature,  # Temperature from config
         )
 
     async def generate_response(
@@ -94,15 +98,7 @@ class LLMService:
         """Build system prompt with memory context."""
 
         # Base personality
-        system_prompt = """คุณเป็นพนักงานบริการลูกค้าที่เป็นมิตรและช่วยเหลือดี
-
-                        คุณควร:
-                        - ตอบด้วยภาษาไทยที่สุภาพและเป็นมิตร
-                        - ใช้คำสุภาพ เช่น "ค่ะ" ให้เหมาะสมกับบริบท
-                        - แสดงความสนใจและเอาใจใส่ลูกค้า
-                        - ให้ข้อมูลที่ถูกต้องและเป็นประโยชน์
-                        - หากไม่แน่ใจ ให้บอกว่าจะไปสอบถามเพิ่มเติม
-                        """
+        system_prompt = LLMConfig.RESPONSE_GENERATION_SYSTEM_PROMPT
 
         # Add user preferences if available
         if memory_context.get("user_attributes"):

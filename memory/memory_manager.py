@@ -9,7 +9,8 @@ from typing import Any
 
 import redis.asyncio as redis
 
-from memory.event_processor import EventProcessor, EventProcessorFactory
+from llm.event_processor import EventProcessor
+from llm.factory import EventProcessorFactory
 from memory.lm_json_store import LongTermMemoryStore
 from models.memory import LongTermMemory, MemoryConfig, ShortTermMemory
 
