@@ -1,5 +1,5 @@
 """
-FastAPI application with multi-store webhook integration.
+FastAPI application with multi-store webhook integration and memory system.
 """
 
 import pprint
@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 
 from bot_gateway.gateway import BotGateway
 from config.settings import load_config
+from memory.memory_manager import MemoryManagerFactory
 from models.platform import PlatformType
 from services.adapter_factory import AdapterFactory
 from services.customer_service import CustomerService
@@ -25,10 +26,59 @@ app = FastAPI(
 store_service = StoreService()
 customer_service = CustomerService()
 adapter_factory = AdapterFactory()
-gateway = BotGateway()
 
 # Load configuration from config.yaml
 config = load_config()
+
+# Global memory manager (will be initialized on startup)
+memory_manager = None
+gateway = None
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize memory system, LLM service, and gateway on app startup."""
+    global memory_manager, gateway
+
+    try:
+        print("🧠 Initializing Memory System...")
+
+        # Create memory manager from config
+        memory_manager = await MemoryManagerFactory.create_from_config(config)
+        print(
+            f"✅ Memory Manager initialized with Redis: {config['memory']['redis_url']}"
+        )
+
+        # Create LLM service
+        from llm.llm_service import LLMService
+
+        llm_service = LLMService(
+            api_key=config["openrouter"]["api_key"],
+            model=config.get("llm_model", "openai/gpt-4o-mini"),
+            base_url=config.get("openrouter_base_url", "https://openrouter.ai/api/v1"),
+        )
+        print("✅ LLM Service initialized with OpenRouter")
+
+        # Initialize gateway with memory system and LLM
+        gateway = BotGateway(memory_manager=memory_manager, llm_service=llm_service)
+        print("✅ Bot Gateway initialized with memory and LLM support")
+
+    except Exception as e:
+        print(f"❌ Failed to initialize system: {e}")
+        raise
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Clean up resources on app shutdown."""
+    global memory_manager
+
+    if memory_manager:
+        try:
+            await memory_manager.close()
+            print("✅ Memory system connections closed")
+        except Exception as e:
+            print(f"⚠️ Error closing memory system: {e}")
 
 
 @app.get("/")

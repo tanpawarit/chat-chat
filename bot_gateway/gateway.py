@@ -1,25 +1,35 @@
 """
-Central bot gateway for handling normalized messages from all platforms.
+Central bot gateway for handling normalized messages from all platforms with memory support.
 """
 
+import logging
 from typing import Any
 
 from models.message import IncomingMessage, MessageType, OutgoingMessage
 from models.user import User
 
+logger = logging.getLogger(__name__)
+
 
 class BotGateway:
-    """Central gateway for processing messages from all platforms."""
+    """Central gateway for processing messages from all platforms with memory support."""
 
-    def __init__(self):
-        """Initialize the bot gateway."""
-        pass
+    def __init__(self, memory_manager=None, llm_service=None):
+        """
+        Initialize the bot gateway.
+        
+        Args:
+            memory_manager: Optional MemoryManager instance for conversation persistence
+            llm_service: Optional LLMService instance for intelligent responses
+        """
+        self.memory_manager = memory_manager
+        self.llm_service = llm_service
 
     async def handle_message(
         self, message: IncomingMessage, user: User, store=None
     ) -> OutgoingMessage:
         """
-        Handle incoming message and return response.
+        Handle incoming message with memory and LLM support.
 
         Args:
             message: Normalized incoming message
@@ -29,84 +39,138 @@ class BotGateway:
         Returns:
             Normalized outgoing message response
         """
-        # Print message details for debugging (enhanced with store info)
-        print("=" * 50)
-        print("=> INCOMING MESSAGE")
-        print("=" * 50)
-        print(f"Platform: {message.platform}")
-        print(f"User ID: {message.user_id}")
-        print(f"Store ID: {user.store_id if user.store_id else 'N/A'}")
-        print(f"Customer ID: {user.customer_id if user.customer_id else 'N/A'}")
-        print(f"Message Type: {message.message_type.value}")
-        print(f"Text: {message.text}")
-        print(f"Timestamp: {message.timestamp}")
-        print("=" * 50)
+        # Debug logging
+        logger.info(f"Processing message from {user.store_id}:{user.customer_id}")
+        logger.debug(f"Message type: {message.message_type.value}, Text: {message.text}")
 
-        # Print user details
-        print("=> USER INFO")
-        print("=" * 50)
-        print(
-            f"Display Name: {user.profile.display_name if user.profile else 'Unknown'}"
+        try:
+            # Extract identifiers
+            tenant_id = user.store_id or "default_store"
+            user_id = user.customer_id or user.platform_user_id
+            session_id = f"session_{user.platform_user_id}"
+
+            store_name = store.name if store else "Chat Bot"
+            user_name = user.profile.display_name if user.profile else "คุณลูกค้า"
+
+            # Handle non-text messages first
+            if message.message_type != MessageType.TEXT or not message.text:
+                response_text = await self._handle_non_text_message(message, store_name)
+                return self._create_response(response_text)
+
+            # Check for system warning messages (pass through as-is)
+            if self._is_system_warning(message.text):
+                return self._create_response(message.text)
+
+            # Memory-powered conversation flow
+            if self.memory_manager:
+                try:
+                    # Get or create session context
+                    await self.memory_manager.get_or_create_session_context(
+                        tenant_id=tenant_id,
+                        user_id=user_id,
+                        session_id=session_id
+                    )
+                    logger.info(f"Loaded session context for {tenant_id}:{user_id}")
+
+                    # Add user message to memory
+                    await self.memory_manager.add_message_to_context(
+                        tenant_id=tenant_id,
+                        user_id=user_id,
+                        message=message.text,
+                        role="user",
+                        metadata={
+                            "platform": message.platform,
+                            "timestamp": message.timestamp.isoformat(),
+                            "store_name": store_name,
+                            "user_name": user_name
+                        }
+                    )
+
+                    # Get memory context for LLM
+                    memory_context = await self.memory_manager.get_context_for_llm(
+                        tenant_id=tenant_id,
+                        user_id=user_id,
+                        include_summary=True,
+                        max_recent_messages=10
+                    )
+
+                    # Generate intelligent response using LLM
+                    if self.llm_service:
+                        response_text = await self.llm_service.generate_response(
+                            user_message=message.text,
+                            memory_context=memory_context,
+                            store_name=store_name,
+                            user_name=user_name
+                        )
+                    else:
+                        # Fallback response if no LLM service
+                        response_text = f"สวัสดีครับ/ค่ะ จาก {store_name}! ได้รับข้อความของท่านแล้ว: {message.text}"
+
+                    # Add bot response to memory
+                    await self.memory_manager.add_message_to_context(
+                        tenant_id=tenant_id,
+                        user_id=user_id,
+                        message=response_text,
+                        role="bot",
+                        metadata={
+                            "generated_by": "llm_service",
+                            "model_used": "openai/gpt-4o-mini"
+                        }
+                    )
+
+                    logger.info(f"Generated response for {tenant_id}:{user_id}: {len(response_text)} chars")
+
+                except Exception as e:
+                    logger.error(f"Memory system error: {e}")
+                    # Fallback to simple response
+                    response_text = f"สวัสดีครับ/ค่ะ จาก {store_name}! ได้รับข้อความของท่านแล้ว"
+
+            else:
+                # No memory system - simple response
+                response_text = f"สวัสดีครับ/ค่ะ จาก {store_name}! ท่านส่งข้อความว่า: {message.text}"
+
+            return self._create_response(response_text)
+
+        except Exception as e:
+            logger.error(f"Error processing message: {e}")
+            # Error fallback
+            return self._create_response("ขออภัยครับ/ค่ะ เกิดข้อผิดพลาดชั่วคราว กรุณาลองใหม่อีกครั้งนะคะ")
+
+    async def _handle_non_text_message(self, message: IncomingMessage, store_name: str) -> str:
+        """Handle non-text messages (stickers, images, etc.)."""
+        message_type_responses = {
+            MessageType.STICKER: f"ได้รับสติกเกอร์จาก {store_name} แล้วครับ/ค่ะ! 😊",
+            MessageType.IMAGE: f"ได้รับรูปภาพจาก {store_name} แล้วครับ/ค่ะ! 📷",
+            MessageType.VIDEO: f"ได้รับวิดีโอจาก {store_name} แล้วครับ/ค่ะ! 🎥",
+            MessageType.AUDIO: f"ได้รับข้อความเสียงจาก {store_name} แล้วครับ/ค่ะ! 🎵",
+            MessageType.LOCATION: f"ได้รับตำแหน่งที่ตั้งจาก {store_name} แล้วครับ/ค่ะ! 📍",
+        }
+
+        return message_type_responses.get(
+            message.message_type,
+            f"ได้รับข้อความจาก {store_name} แล้วครับ/ค่ะ"
         )
-        print(f"Platform User ID: {user.platform_user_id}")
-        print(f"Message Count: {user.message_count}")
-        if store:
-            print(f"Store Name: {store.name}")
-        print("=" * 50)
 
-        # Check if this is a size/length limit warning message
-        if (
-            message.message_type == MessageType.TEXT
-            and message.text
-            and (
-                message.text.startswith("ข้อความของคุณยาวเกินไป")
-                or message.text.startswith("ไฟล์ของคุณใหญ่เกินไป")
-                or message.text.startswith("รูปภาพของคุณใหญ่เกินไป")
-                or message.text.startswith("วิดีโอของคุณใหญ่เกินไป")
-                or message.text.startswith("ไฟล์เสียงของคุณใหญ่เกินไป")
-            )
-        ):
-            # Return the warning message as-is (no echo)
-            response_text = message.text
-        # Store-specific responses
-        elif message.message_type == MessageType.TEXT and message.text:
-            store_name = store.name if store else "Chat Bot"
-            response_text = (
-                f"สวัสดีครับ/ค่ะ จาก {store_name}! ท่านส่งข้อความว่า: {message.text}"
-            )
-        elif message.message_type == MessageType.STICKER:
-            store_name = store.name if store else "Chat Bot"
-            response_text = f"ได้รับสติกเกอร์จาก {store_name} แล้วครับ/ค่ะ! 😊"
-        elif message.message_type == MessageType.IMAGE:
-            store_name = store.name if store else "Chat Bot"
-            response_text = f"ได้รับรูปภาพจาก {store_name} แล้วครับ/ค่ะ! 📷"
-        elif message.message_type == MessageType.VIDEO:
-            store_name = store.name if store else "Chat Bot"
-            response_text = f"ได้รับวิดีโอจาก {store_name} แล้วครับ/ค่ะ! 🎥"
-        elif message.message_type == MessageType.AUDIO:
-            store_name = store.name if store else "Chat Bot"
-            response_text = f"ได้รับข้อความเสียงจาก {store_name} แล้วครับ/ค่ะ! 🎵"
-        elif message.message_type == MessageType.LOCATION:
-            store_name = store.name if store else "Chat Bot"
-            response_text = f"ได้รับตำแหน่งที่ตั้งจาก {store_name} แล้วครับ/ค่ะ! 📍"
-        else:
-            response_text = "ได้รับข้อความแล้วครับ/ค่ะ แต่ยังไม่แน่ใจว่าจะตอบกลับอย่างไรดี"
+    def _is_system_warning(self, text: str) -> bool:
+        """Check if message is a system warning that should be passed through."""
+        warning_prefixes = [
+            "ข้อความของคุณยาวเกินไป",
+            "ไฟล์ของคุณใหญ่เกินไป",
+            "รูปภาพของคุณใหญ่เกินไป",
+            "วิดีโอของคุณใหญ่เกินไป",
+            "ไฟล์เสียงของคุณใหญ่เกินไป"
+        ]
+        return any(text.startswith(prefix) for prefix in warning_prefixes)
 
-        # Create response message
-        response = OutgoingMessage(
+    def _create_response(self, text: str) -> OutgoingMessage:
+        """Create standardized outgoing message."""
+        return OutgoingMessage(
             message_type=MessageType.TEXT,
-            text=response_text,
+            text=text,
             media=None,
             location=None,
             quick_replies=None,
         )
-
-        print("=> OUTGOING MESSAGE")
-        print("=" * 50)
-        print(f"Response: {response_text}")
-        print("=" * 50)
-
-        return response
 
     def get_status(self) -> dict[str, Any]:
         """
