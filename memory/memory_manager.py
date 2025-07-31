@@ -148,11 +148,31 @@ class MemoryManager:
             if len(sm.history) > max_history:
                 sm.history = sm.history[-max_history:]
 
-            # Process user messages for LM (not bot messages)
+            # Process user messages for LM and update state/intent
             if role == "user" and self.event_processor:
-                await self._process_message_for_lm(
+                event = await self._process_message_for_lm(
                     tenant_id, user_id, message, sm, metadata
                 )
+                
+                # Update state and intent from new event
+                if event:
+                    sm.last_intent = event.event_type.value
+                    
+                    # Determine state from event context
+                    event_context = event.payload.get("context", {})
+                    new_state = event_context.get("current_state", "awaiting_input")
+                    
+                    # If no state in event context, infer from event type
+                    if new_state == "awaiting_input":
+                        event_type = event.event_type.value
+                        if event_type == "TRANSACTION":
+                            new_state = "awaiting_confirmation"
+                        elif event_type == "REQUEST":
+                            new_state = "processing_request"
+                        elif event_type == "INQUIRY":
+                            new_state = "awaiting_response"
+                    
+                    sm.state = new_state
 
             # Save updated SM
             await self._save_sm(sm)
@@ -368,9 +388,26 @@ class MemoryManager:
                     {"user_preferences": lm.attributes, "has_history": True}
                 )
 
-            # Set state based on recent events
+            # Set state and intent based on recent events
             recent_events = lm.get_recent_events(5)
             if recent_events:
+                last_event = recent_events[-1]
+                sm.last_intent = last_event.event_type.value
+                
+                # Determine state from event context
+                event_context = last_event.payload.get("context", {})
+                sm.state = event_context.get("current_state", "awaiting_input")
+                
+                # If no state in event, infer from event type
+                if sm.state == "awaiting_input":
+                    event_type = last_event.event_type.value
+                    if event_type == "TRANSACTION":
+                        sm.state = "awaiting_confirmation"
+                    elif event_type == "REQUEST":
+                        sm.state = "processing_request"
+                    elif event_type == "INQUIRY":
+                        sm.state = "awaiting_response"
+
                 sm.variables["recent_activity"] = [
                     event.event_type.value for event in recent_events
                 ]
@@ -384,12 +421,16 @@ class MemoryManager:
         message: str,
         sm: ShortTermMemory,
         metadata: dict[str, Any] | None,
-    ) -> None:
-        """Process user message for potential LM storage."""
+    ) -> Any | None:
+        """Process user message for potential LM storage.
+        
+        Returns:
+            Event object if processed successfully, None otherwise
+        """
         try:
             if not self.event_processor:
                 logger.warning("No event processor available for LM processing")
-                return
+                return None
 
             # Create context for event processing
             context = {
@@ -411,8 +452,11 @@ class MemoryManager:
                     f"(score: {event.importance_score:.2f})"
                 )
 
+            return event
+
         except Exception as e:
             logger.error(f"Error processing message for LM: {e}")
+            return None
 
 
 class MemoryManagerFactory:

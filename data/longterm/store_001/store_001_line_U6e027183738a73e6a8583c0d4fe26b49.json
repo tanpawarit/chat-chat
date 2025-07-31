@@ -3,52 +3,34 @@
   "user_id": "store_001_line_U6e027183738a73e6a8583c0d4fe26b49",
   "events": [
     {
-      "event_type": "REQUEST",
+      "event_type": "INQUIRY",
       "payload": {
-        "request_type": "purchase",
-        "urgency": "medium",
-        "specifics": "กาแฟ",
-        "original_message": "ซื้อกาแฟหน่อยครับ",
-        "message_length": 17,
+        "question_type": "what is available",
+        "topic": "products",
+        "urgency": "low",
+        "original_message": "มีอะไรขายบ้างวันนี้",
+        "message_length": 19,
         "language": "th",
-        "llm_reasoning": "The message is a direct request to buy coffee, indicating a specific ask related to a transaction. The urgency is assessed as medium since it is a straightforward request without any immediate time constraints mentioned.",
+        "llm_reasoning": "The message is a question asking about what is available for sale today, which classifies it as an inquiry. The urgency is low as it does not indicate any immediate need or critical issue.",
         "context": {
           "platform": "line",
-          "timestamp": "2025-07-31T19:51:16.669850",
+          "timestamp": "2025-07-31T22:04:06.369125",
           "store_name": "ร้านกาแฟเก๋ไก๋",
           "user_name": "LINE User",
-          "session_variables": {},
-          "current_state": "awaiting_input",
-          "last_intent": null,
+          "session_variables": {
+            "recent_activity": [
+              "INQUIRY",
+              "TRANSACTION",
+              "REQUEST"
+            ]
+          },
+          "current_state": "processing_request",
+          "last_intent": "TRANSACTION",
           "conversation_length": 9
         }
       },
-      "timestamp": "2025-07-31T12:51:21.351037+00:00",
-      "importance_score": 0.7
-    },
-    {
-      "event_type": "TRANSACTION",
-      "payload": {
-        "transaction_type": "order",
-        "stage": "request",
-        "amount_mentioned": 2,
-        "original_message": "อเมริกาโน่ 2 ครับ",
-        "message_length": 17,
-        "language": "th",
-        "llm_reasoning": "The message indicates a specific order for 2 Americano coffees, which qualifies as a transaction request. The importance score is set at 0.8 due to the specificity of the order, indicating a clear intent to purchase.",
-        "context": {
-          "platform": "line",
-          "timestamp": "2025-07-31T19:51:43.350950",
-          "store_name": "ร้านกาแฟเก๋ไก๋",
-          "user_name": "LINE User",
-          "session_variables": {},
-          "current_state": "awaiting_input",
-          "last_intent": null,
-          "conversation_length": 11
-        }
-      },
-      "timestamp": "2025-07-31T12:51:46.061445+00:00",
-      "importance_score": 0.8
+      "timestamp": "2025-07-31T15:04:09.803076+00:00",
+      "importance_score": 0.5
     },
     {
       "event_type": "INQUIRY",
@@ -56,32 +38,63 @@
         "question_type": "product inquiry",
         "topic": "available items",
         "urgency": "low",
-        "original_message": "มีอะไรขายบ้าง",
-        "message_length": 13,
+        "original_message": "มีอะไรขายบ้างวันนี้",
+        "message_length": 19,
         "language": "th",
-        "llm_reasoning": "The message is a simple inquiry asking about available products at the coffee shop. It does not indicate urgency or a critical need for information, thus receiving a moderate importance score.",
+        "llm_reasoning": "The message is a question asking about what is available for sale today, which classifies it as an inquiry. The urgency is low as it does not indicate any immediate need or critical situation.",
         "context": {
           "platform": "line",
-          "timestamp": "2025-07-31T20:39:38.716003",
+          "timestamp": "2025-07-31T22:04:51.069595",
           "store_name": "ร้านกาแฟเก๋ไก๋",
           "user_name": "LINE User",
           "session_variables": {
             "recent_activity": [
+              "INQUIRY",
               "TRANSACTION",
               "REQUEST"
             ]
           },
-          "current_state": "awaiting_input",
-          "last_intent": null,
-          "conversation_length": 15
+          "current_state": "processing_request",
+          "last_intent": "INQUIRY",
+          "conversation_length": 11
         }
       },
-      "timestamp": "2025-07-31T13:39:40.939524+00:00",
+      "timestamp": "2025-07-31T15:04:53.805932+00:00",
       "importance_score": 0.5
+    },
+    {
+      "event_type": "TRANSACTION",
+      "payload": {
+        "transaction_type": "order",
+        "stage": "request",
+        "amount_mentioned": 2,
+        "original_message": "เอาคาปู 2 เเก้ว",
+        "message_length": 15,
+        "language": "th",
+        "llm_reasoning": "LLM classification without explicit reasoning",
+        "context": {
+          "platform": "line",
+          "timestamp": "2025-07-31T22:05:42.364629",
+          "store_name": "ร้านกาแฟเก๋ไก๋",
+          "user_name": "LINE User",
+          "session_variables": {
+            "recent_activity": [
+              "INQUIRY",
+              "TRANSACTION",
+              "REQUEST"
+            ]
+          },
+          "current_state": "processing_request",
+          "last_intent": "INQUIRY",
+          "conversation_length": 13
+        }
+      },
+      "timestamp": "2025-07-31T15:05:47.629086+00:00",
+      "importance_score": 0.8
     }
   ],
   "attributes": {},
   "history_summary": "",
-  "created_at": "2025-07-31T12:51:21.351422+00:00",
-  "updated_at": "2025-07-31T13:39:40.940417+00:00"
+  "created_at": "2025-07-31T15:04:09.803310+00:00",
+  "updated_at": "2025-07-31T15:05:47.629663+00:00"
 }
