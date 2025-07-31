@@ -153,15 +153,15 @@ class MemoryManager:
                 event = await self._process_message_for_lm(
                     tenant_id, user_id, message, sm, metadata
                 )
-                
+
                 # Update state and intent from new event
                 if event:
                     sm.last_intent = event.event_type.value
-                    
+
                     # Determine state from event context
                     event_context = event.payload.get("context", {})
                     new_state = event_context.get("current_state", "awaiting_input")
-                    
+
                     # If no state in event context, infer from event type
                     if new_state == "awaiting_input":
                         event_type = event.event_type.value
@@ -171,7 +171,7 @@ class MemoryManager:
                             new_state = "processing_request"
                         elif event_type == "INQUIRY":
                             new_state = "awaiting_response"
-                    
+
                     sm.state = new_state
 
             # Save updated SM
@@ -393,11 +393,11 @@ class MemoryManager:
             if recent_events:
                 last_event = recent_events[-1]
                 sm.last_intent = last_event.event_type.value
-                
+
                 # Determine state from event context
                 event_context = last_event.payload.get("context", {})
                 sm.state = event_context.get("current_state", "awaiting_input")
-                
+
                 # If no state in event, infer from event type
                 if sm.state == "awaiting_input":
                     event_type = last_event.event_type.value
@@ -423,7 +423,7 @@ class MemoryManager:
         metadata: dict[str, Any] | None,
     ) -> Any | None:
         """Process user message for potential LM storage.
-        
+
         Returns:
             Event object if processed successfully, None otherwise
         """
