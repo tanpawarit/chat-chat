@@ -56,8 +56,7 @@ class ShortTermMemory(BaseModel):
     )
     summary: str = Field("", description="Context summary from LLM")
 
-    # Current state
-    state: str = Field("awaiting_input", description="Current conversation state")
+    # Last detected intent
     last_intent: str | None = Field(None, description="Last detected intent")
 
     # Session variables (flexible for any business)
@@ -88,7 +87,6 @@ class ShortTermMemory(BaseModel):
                     {"role": "bot", "message": "สวัสดีค่ะ มีอะไรให้ช่วยไหมคะ"},
                 ],
                 "summary": "User greeted, bot responded politely",
-                "state": "awaiting_input",
                 "last_intent": "greeting",
                 "variables": {"preferred_language": "th", "current_topic": "general"},
             }

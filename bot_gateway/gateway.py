@@ -130,6 +130,7 @@ class BotGateway:
 
                 except Exception as e:
                     logger.error(f"Memory system error: {e}")
+
                     # Fallback to simple response
                     response_text = f"สวัสดีครับ/ค่ะ จาก {store_name}! ได้รับข้อความของท่านแล้ว"
 
@@ -143,6 +144,7 @@ class BotGateway:
 
         except Exception as e:
             logger.error(f"Error processing message: {e}")
+
             # Error fallback
             return self._create_response(
                 "ขออภัยครับ/ค่ะ เกิดข้อผิดพลาดชั่วคราว กรุณาลองใหม่อีกครั้งนะคะ"

@@ -148,7 +148,7 @@ class MemoryManager:
             if len(sm.history) > max_history:
                 sm.history = sm.history[-max_history:]
 
-            # Process user messages for LM and update state/intent
+            # Process user messages for LM and manage state transitions
             if role == "user" and self.event_processor:
                 event = await self._process_message_for_lm(
                     tenant_id, user_id, message, sm, metadata
@@ -157,22 +157,6 @@ class MemoryManager:
                 # Update state and intent from new event
                 if event:
                     sm.last_intent = event.event_type.value
-
-                    # Determine state from event context
-                    event_context = event.payload.get("context", {})
-                    new_state = event_context.get("current_state", "awaiting_input")
-
-                    # If no state in event context, infer from event type
-                    if new_state == "awaiting_input":
-                        event_type = event.event_type.value
-                        if event_type == "TRANSACTION":
-                            new_state = "awaiting_confirmation"
-                        elif event_type == "REQUEST":
-                            new_state = "processing_request"
-                        elif event_type == "INQUIRY":
-                            new_state = "awaiting_response"
-
-                    sm.state = new_state
 
             # Save updated SM
             await self._save_sm(sm)
@@ -240,7 +224,6 @@ class MemoryManager:
 
             context = {
                 "recent_messages": sm.history[-max_recent_messages:],
-                "current_state": sm.state,
                 "last_intent": sm.last_intent,
                 "session_variables": sm.variables,
             }
@@ -373,7 +356,6 @@ class MemoryManager:
             user_id=user_id,
             session_id=session_id,
             summary="",
-            state="awaiting_input",
             last_intent=None,
             expires_at=datetime.now(UTC) + timedelta(seconds=self.config.sm_ttl),
         )
@@ -393,20 +375,6 @@ class MemoryManager:
             if recent_events:
                 last_event = recent_events[-1]
                 sm.last_intent = last_event.event_type.value
-
-                # Determine state from event context
-                event_context = last_event.payload.get("context", {})
-                sm.state = event_context.get("current_state", "awaiting_input")
-
-                # If no state in event, infer from event type
-                if sm.state == "awaiting_input":
-                    event_type = last_event.event_type.value
-                    if event_type == "TRANSACTION":
-                        sm.state = "awaiting_confirmation"
-                    elif event_type == "REQUEST":
-                        sm.state = "processing_request"
-                    elif event_type == "INQUIRY":
-                        sm.state = "awaiting_response"
 
                 sm.variables["recent_activity"] = [
                     event.event_type.value for event in recent_events
